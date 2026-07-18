@@ -1,0 +1,25 @@
+{
+  "name": "pdd-monkeytype",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "PDD recreation of a monkeytype-like typing platform: protocols sovereign, implementation replaceable.",
+  "scripts": {
+    "start": "node implementation/src/index.js",
+    "validate:structural": "node harness/validate-structural.mjs",
+    "validate:behavioral": "node harness/validate-behavioral.mjs",
+    "validate:operational": "node harness/validate-operational.mjs",
+    "evidence:build": "node harness/build-evidence.mjs",
+    "evidence:verify": "node harness/verify-evidence.mjs",
+    "pdd:loop": "npm run validate:structural && npm run validate:behavioral && npm run validate:operational && npm run evidence:build && npm run evidence:verify",
+    "test:mutation": "echo 'mutation sanity runs inside validate:behavioral (mutationSanity checks)'"
+  },
+  "dependencies": {
+    "express": "^4.22.2"
+  },
+  "devDependencies": {
+    "ajv": "^8.20.0",
+    "fast-check": "^3.23.2",
+    "puppeteer-core": "^23"
+  }
+}

@@ -1,0 +1,217 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": [
+    "wpm",
+    "rawWpm",
+    "acc",
+    "charStats",
+    "charTotal",
+    "mode",
+    "mode2",
+    "testDuration",
+    "timestamp",
+    "consistency",
+    "keyConsistency",
+    "wpmConsistency",
+    "chartData",
+    "restartCount",
+    "afkDuration",
+    "bailedOut",
+    "language",
+    "punctuation",
+    "numbers",
+    "hash",
+    "incompleteTests"
+  ],
+  "properties": {
+    "wpm": {
+      "type": "number",
+      "minimum": 0
+    },
+    "rawWpm": {
+      "type": "number",
+      "minimum": 0
+    },
+    "acc": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "charStats": {
+      "type": "array",
+      "prefixItems": [
+        {
+          "type": "integer",
+          "minimum": 0
+        },
+        {
+          "type": "integer",
+          "minimum": 0
+        },
+        {
+          "type": "integer",
+          "minimum": 0
+        },
+        {
+          "type": "integer",
+          "minimum": 0
+        }
+      ],
+      "minItems": 4,
+      "maxItems": 4
+    },
+    "charTotal": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "mode": {
+      "enum": [
+        "time",
+        "words",
+        "quote",
+        "zen",
+        "custom"
+      ]
+    },
+    "mode2": {
+      "type": "string"
+    },
+    "quoteLength": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 3
+    },
+    "testDuration": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "timestamp": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "consistency": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "keyConsistency": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "wpmConsistency": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "chartData": {
+      "anyOf": [
+        {
+          "type": "object",
+          "required": [
+            "wpm",
+            "burst",
+            "err"
+          ],
+          "properties": {
+            "wpm": {
+              "type": "array",
+              "maxItems": 122,
+              "items": {
+                "type": "number",
+                "minimum": 0
+              }
+            },
+            "burst": {
+              "type": "array",
+              "maxItems": 122,
+              "items": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "err": {
+              "type": "array",
+              "maxItems": 122,
+              "items": {
+                "type": "integer",
+                "minimum": 0
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "const": "toolong"
+        }
+      ]
+    },
+    "keySpacing": {
+      "type": "array",
+      "items": {
+        "type": "number",
+        "minimum": 0
+      }
+    },
+    "keyDuration": {
+      "type": "array",
+      "items": {
+        "type": "number",
+        "minimum": 0
+      }
+    },
+    "restartCount": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "afkDuration": {
+      "type": "number",
+      "minimum": 0
+    },
+    "bailedOut": {
+      "type": "boolean"
+    },
+    "language": {
+      "type": "string"
+    },
+    "punctuation": {
+      "type": "boolean"
+    },
+    "numbers": {
+      "type": "boolean"
+    },
+    "blindMode": {
+      "type": "boolean"
+    },
+    "stopOnLetter": {
+      "type": "boolean"
+    },
+    "hash": {
+      "type": "string",
+      "maxLength": 100
+    },
+    "incompleteTests": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "acc",
+          "seconds"
+        ],
+        "properties": {
+          "acc": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "seconds": {
+            "type": "number",
+            "minimum": 0
+          }
+        }
+      }
+    }
+  },
+  "additionalProperties": true
+}

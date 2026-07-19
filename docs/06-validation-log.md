@@ -47,3 +47,12 @@ All handshakes conform: auth-response, profile, config, quote, completed-event (
 - Unknown-route 404 leaked express HTML (envelope family S-*-002). Implementation fix + structural regression test. Full loop re-run: **19/35/11 all pass → admitted**.
 
 **Total validator-loop iterations to stable admission: 6** (2 implementation fixes, 3 harness/validator fixes, 1 config fix). Ledger: all chains verify; zero unexplained violations.
+
+## Iteration 7 — CA-001 protocol-gap remediation (typing-test-engine v1.0.0 -> v1.1.0)
+- **Finding** (user report): implementation blocked backspace at the start of the current word; the reference permits retreat into a previous committed word that contains an error (correct words are sealed). Root cause: v1.0.0 B-ENG-005 text ("the current word") was a CRITICAL ambiguity (two behavior-changing readings).
+- Ground truth established from reference `before-delete.ts`: delete event prevented when previous committed input == target-with-commit; otherwise retreat.
+- Classification: **protocol-gap** (first defect traced to protocol authoring — an under-specified critical ambiguity, not a wrong rule).
+- Remediation: version event v1.1.0 with reference-faithful B-ENG-005; implementation retreat rule added; 3 property tests (retreat-iff-error, seal-iff-correct, never-before-first-word). Full loop: 19/37/12 all pass → re-admitted.
+- Side effect: produced the critical-ambiguity classification now embedded in the pdd-protocol-author skill (see docs/10-critical-ambiguity-CA-001.md).
+
+**Defect ledger update: protocol authoring 1 (critical ambiguity, remediated via version event), workflow/harnessing 4, implementation 2.**

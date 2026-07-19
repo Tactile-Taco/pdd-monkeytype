@@ -1,0 +1,35 @@
+invariants:
+  - id: B-LB-001
+    statement: >
+      Only stored results with anticheat decision admit AND bailedOut=false are eligible; each user contributes at most one entry per board (their best eligible result).
+    severity: must
+    rationale: >
+      Protocol requirement.
+    property: "entries(u) <= 1 && all admitted && none bailed"
+    validation:
+      - property-check
+  - id: B-LB-002
+    statement: >
+      Entries are ordered by wpm descending; ties break by earlier timestamp ascending; rank equals 1-based position.
+    severity: must
+    rationale: >
+      Protocol requirement.
+    property: "sorted(wpm desc, timestamp asc)"
+    validation:
+      - property-check
+  - id: B-LB-003
+    statement: >
+      The board reflects all admitted eligible results at read time (read-time recomputation; no stale cache).
+    severity: must
+    rationale: >
+      Protocol requirement.
+    validation:
+      - contract-tests
+  - id: B-LB-004
+    statement: >
+      Requester field is null when unauthenticated or the requester has no eligible entry; otherwise it carries the requester's rank and entry even outside top-N.
+    severity: must
+    rationale: >
+      Protocol requirement.
+    validation:
+      - contract-tests

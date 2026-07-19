@@ -1,0 +1,18 @@
+invariants:
+  - id: S-LB-001
+    statement: >
+      Board responses conform to schemas/leaderboard.schema.json; board key is restricted to (time, 15|60, english).
+    severity: must
+    rationale: >
+      Protocol requirement.
+    validation:
+      - schema-conformance
+      - contract-tests
+  - id: S-LB-002
+    statement: >
+      All failures return the ErrorEnvelope schema.
+    severity: must
+    rationale: >
+      Protocol requirement.
+    validation:
+      - contract-tests

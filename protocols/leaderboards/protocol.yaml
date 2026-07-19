@@ -1,0 +1,30 @@
+protocol:
+  name: leaderboards
+  version: 1.0.0
+  status: sealed
+purpose: >
+  Ranked leaderboards derived from admitted results: boards keyed by
+  (mode=time, mode2 in {15,60}, language=english), ranked by wpm with
+  deterministic tie-breaking, exposing top-N and the requester's own entry.
+boundary:
+  in_scope:
+    - Board read (top-N, N<=100, default 50) and requester rank
+    - Eligibility filtering from stored admitted results
+  out_of_scope:
+    - Historical/daily boards, multi-language boards, opt-out management
+depends_on: [test-results, user-account]
+provides:
+  leaderboard: schemas/leaderboard.schema.json
+consumes:
+  stored-result-reader: test-results
+  auth-token: user-account
+handshakes:
+  leaderboard: schemas/leaderboard.schema.json
+  error: schemas/error.schema.json
+invariants:
+  structural: invariants/structural.yaml
+  behavioral: invariants/behavioral.yaml
+  operational: invariants/operational.yaml
+capabilities: capability-manifest.yaml
+validators: validators/validation-plan.yaml
+evidence: evidence-requirements.yaml

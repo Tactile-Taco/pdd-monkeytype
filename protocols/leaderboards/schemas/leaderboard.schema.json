@@ -1,0 +1,99 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": [
+    "board",
+    "entries",
+    "requester"
+  ],
+  "properties": {
+    "board": {
+      "type": "object",
+      "required": [
+        "mode",
+        "mode2",
+        "language"
+      ],
+      "properties": {
+        "mode": {
+          "const": "time"
+        },
+        "mode2": {
+          "enum": [
+            "15",
+            "60"
+          ]
+        },
+        "language": {
+          "const": "english"
+        }
+      }
+    },
+    "entries": {
+      "type": "array",
+      "maxItems": 100,
+      "items": {
+        "type": "object",
+        "required": [
+          "rank",
+          "uid",
+          "name",
+          "wpm",
+          "rawWpm",
+          "acc",
+          "consistency",
+          "timestamp"
+        ],
+        "properties": {
+          "rank": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "uid": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "wpm": {
+            "type": "number",
+            "minimum": 0
+          },
+          "rawWpm": {
+            "type": "number",
+            "minimum": 0
+          },
+          "acc": {
+            "type": "number",
+            "minimum": 50,
+            "maximum": 100
+          },
+          "consistency": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "timestamp": {
+            "type": "integer"
+          }
+        }
+      }
+    },
+    "requester": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "properties": {
+        "rank": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "entry": {
+          "type": "object"
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,10 @@
+invariants:
+  - id: O-LB-001
+    statement: >
+      No outbound network; zero store writes (read-only); p95 <= 100ms at 10k stored results.
+    severity: must
+    rationale: >
+      Protocol requirement.
+    validation:
+      - egress-monitor
+      - resource-budget

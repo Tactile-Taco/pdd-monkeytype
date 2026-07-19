@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "mode": {
+      "enum": [
+        "time",
+        "words",
+        "quote",
+        "zen",
+        "custom"
+      ]
+    },
+    "mode2": {
+      "type": "string"
+    },
+    "language": {
+      "type": "string"
+    },
+    "punctuation": {
+      "type": "boolean"
+    },
+    "numbers": {
+      "type": "boolean"
+    },
+    "difficulty": {
+      "enum": [
+        "normal",
+        "expert",
+        "master"
+      ]
+    },
+    "blindMode": {
+      "type": "boolean"
+    },
+    "stopOnError": {
+      "enum": [
+        "off",
+        "letter",
+        "word"
+      ]
+    },
+    "theme": {
+      "type": "string"
+    },
+    "lazyMode": {
+      "type": "boolean"
+    }
+  },
+  "additionalProperties": false,
+  "minProperties": 1
+}

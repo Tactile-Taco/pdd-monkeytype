@@ -1,0 +1,29 @@
+protocol:
+  name: user-config
+  version: 1.0.0
+  status: sealed
+purpose: >
+  Per-user test configuration: authenticated read of the effective config
+  (defaults merged) and partial updates validated against a closed schema.
+boundary:
+  in_scope:
+    - GET effective config, PUT partial config update
+    - Default values for unset keys, unknown-key and invalid-value rejection
+  out_of_scope:
+    - Config presets, theme asset delivery, client-side caching
+depends_on: [user-account]
+provides:
+  user-config: schemas/config.schema.json
+consumes:
+  auth-token: user-account
+handshakes:
+  config: schemas/config.schema.json
+  update_request: schemas/config-update.schema.json
+  error: schemas/error.schema.json
+invariants:
+  structural: invariants/structural.yaml
+  behavioral: invariants/behavioral.yaml
+  operational: invariants/operational.yaml
+capabilities: capability-manifest.yaml
+validators: validators/validation-plan.yaml
+evidence: evidence-requirements.yaml

@@ -1,0 +1,35 @@
+invariants:
+  - id: B-CFG-001
+    statement: >
+      GET returns the effective config: every schema key present, unset keys at documented defaults.
+    severity: must
+    rationale: >
+      Protocol requirement.
+    validation:
+      - contract-tests
+  - id: B-CFG-002
+    statement: >
+      PUT is a partial merge: keys absent from the request retain their prior values; the response reflects the merged result.
+    severity: must
+    rationale: >
+      Protocol requirement.
+    property: "put(c, p) => get() == merge(c, p)"
+    validation:
+      - property-check
+  - id: B-CFG-003
+    statement: >
+      A PUT containing any invalid value is rejected wholesale (422): no key from that request is persisted.
+    severity: must
+    rationale: >
+      Protocol requirement.
+    validation:
+      - property-check
+      - contract-tests
+  - id: B-CFG-004
+    statement: >
+      Unauthenticated GET/PUT returns unauthorized.
+    severity: must
+    rationale: >
+      Protocol requirement.
+    validation:
+      - contract-tests

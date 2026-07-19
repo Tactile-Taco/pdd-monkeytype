@@ -1,0 +1,26 @@
+invariants:
+  - id: S-CFG-001
+    statement: >
+      Config objects conform to schemas/config.schema.json; unknown keys are rejected (additionalProperties false).
+    severity: must
+    rationale: >
+      Protocol requirement.
+    validation:
+      - schema-conformance
+      - contract-tests
+  - id: S-CFG-002
+    statement: >
+      Update requests must contain at least one known key and conform to schemas/config-update.schema.json.
+    severity: must
+    rationale: >
+      Protocol requirement.
+    validation:
+      - schema-conformance
+  - id: S-CFG-003
+    statement: >
+      All failures return the ErrorEnvelope schema.
+    severity: must
+    rationale: >
+      Protocol requirement.
+    validation:
+      - contract-tests

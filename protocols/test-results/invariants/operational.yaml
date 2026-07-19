@@ -1,0 +1,25 @@
+invariants:
+  - id: O-RES-001
+    statement: >
+      No outbound network; anticheat evaluation is an in-process function call per its operational contract; <=2 store writes per POST (result + PB update).
+    severity: must
+    rationale: >
+      Protocol requirement.
+    validation:
+      - egress-monitor
+  - id: O-RES-002
+    statement: >
+      POST p95 latency <= 100ms including admission checks.
+    severity: must
+    rationale: >
+      Protocol requirement.
+    validation:
+      - resource-budget
+  - id: O-RES-003
+    statement: >
+      Unauthenticated submissions are rejected before any storage or anticheat work (cheap auth-first ordering).
+    severity: must
+    rationale: >
+      Protocol requirement.
+    validation:
+      - contract-tests

@@ -1,0 +1,26 @@
+invariants:
+  - id: S-RES-001
+    statement: >
+      Submissions must validate against schemas/completed-event.schema.json; invalid payloads return unprocessable with the ErrorEnvelope and nothing is stored.
+    severity: must
+    rationale: >
+      Protocol requirement.
+    validation:
+      - schema-conformance
+      - contract-tests
+  - id: S-RES-002
+    statement: >
+      Stored results conform to schemas/stored-result.schema.json including the recorded anticheat decision.
+    severity: must
+    rationale: >
+      Protocol requirement.
+    validation:
+      - schema-conformance
+  - id: S-RES-003
+    statement: >
+      All failures return the ErrorEnvelope schema.
+    severity: must
+    rationale: >
+      Protocol requirement.
+    validation:
+      - contract-tests

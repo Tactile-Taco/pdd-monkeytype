@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": [
+    "id",
+    "uid",
+    "wpm",
+    "rawWpm",
+    "acc",
+    "mode",
+    "mode2",
+    "language",
+    "timestamp",
+    "testDuration",
+    "consistency",
+    "isPb",
+    "bailedOut",
+    "anticheat"
+  ],
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "uid": {
+      "type": "string"
+    },
+    "wpm": {
+      "type": "number",
+      "minimum": 0
+    },
+    "rawWpm": {
+      "type": "number",
+      "minimum": 0
+    },
+    "acc": {
+      "type": "number",
+      "minimum": 50,
+      "maximum": 100
+    },
+    "mode": {
+      "enum": [
+        "time",
+        "words",
+        "quote",
+        "zen",
+        "custom"
+      ]
+    },
+    "mode2": {
+      "type": "string"
+    },
+    "language": {
+      "type": "string"
+    },
+    "timestamp": {
+      "type": "integer"
+    },
+    "testDuration": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "consistency": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "punctuation": {
+      "type": "boolean"
+    },
+    "numbers": {
+      "type": "boolean"
+    },
+    "isPb": {
+      "type": "boolean"
+    },
+    "bailedOut": {
+      "type": "boolean"
+    },
+    "anticheat": {
+      "type": "object",
+      "required": [
+        "decision"
+      ],
+      "properties": {
+        "decision": {
+          "enum": [
+            "admit",
+            "reject"
+          ]
+        }
+      }
+    }
+  },
+  "additionalProperties": true
+}

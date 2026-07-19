@@ -1,0 +1,35 @@
+protocol:
+  name: test-results
+  version: 1.0.0
+  status: sealed
+purpose: >
+  Authenticated submission, admission, persistence, and read-back of typing-test
+  results, including personal-best tracking and history queries. Results are
+  admitted only through the result-anticheat verdict and stored per the
+  stored-result handshake consumed by leaderboards.
+boundary:
+  in_scope:
+    - POST result (auth + anticheat admission + idempotent store by client hash)
+    - Personal bests per (mode, mode2, language, punctuation, numbers)
+    - History and PB read for the authenticated user
+  out_of_scope:
+    - Result deletion/gdpr flows, tags CRUD, leaderboard computation itself
+depends_on: [user-account, result-anticheat, typing-test-engine]
+provides:
+  stored-result: schemas/stored-result.schema.json
+  stored-result-reader: schemas/stored-result.schema.json
+consumes:
+  auth-token: user-account
+  anticheat-verdict: result-anticheat
+  completed-event: typing-test-engine
+handshakes:
+  submission: schemas/completed-event.schema.json
+  stored_result: schemas/stored-result.schema.json
+  error: schemas/error.schema.json
+invariants:
+  structural: invariants/structural.yaml
+  behavioral: invariants/behavioral.yaml
+  operational: invariants/operational.yaml
+capabilities: capability-manifest.yaml
+validators: validators/validation-plan.yaml
+evidence: evidence-requirements.yaml

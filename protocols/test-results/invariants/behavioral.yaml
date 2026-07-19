@@ -1,0 +1,45 @@
+invariants:
+  - id: B-RES-001
+    statement: >
+      A result is stored only when the anticheat verdict is admit; rejected results return unprocessable with reason codes and are never persisted.
+    severity: must
+    rationale: >
+      Protocol requirement.
+    property: "stored(r) => anticheat(r).decision == 'admit'"
+    validation:
+      - contract-tests
+      - property-check
+  - id: B-RES-002
+    statement: >
+      Submission is idempotent by client hash: repeating a submission with the same (uid, hash) returns the originally stored record and performs no second write.
+    severity: must
+    rationale: >
+      Protocol requirement.
+    property: "submit(h); submit(h) => same record, one write"
+    validation:
+      - property-check
+      - contract-tests
+  - id: B-RES-003
+    statement: >
+      A stored result with wpm strictly greater than the current PB for its tuple (mode, mode2, language, punctuation, numbers) becomes the new PB (isPb=true) and demotes the prior PB.
+    severity: must
+    rationale: >
+      Protocol requirement.
+    validation:
+      - property-check
+  - id: B-RES-004
+    statement: >
+      Bailed-out results are stored with bailedOut=true but are never personal bests and never leaderboard-eligible.
+    severity: must
+    rationale: >
+      Protocol requirement.
+    validation:
+      - property-check
+  - id: B-RES-005
+    statement: >
+      History reads return only the authenticated user's results, newest first.
+    severity: must
+    rationale: >
+      Protocol requirement.
+    validation:
+      - contract-tests

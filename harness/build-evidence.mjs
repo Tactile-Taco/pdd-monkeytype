@@ -27,8 +27,10 @@ for (const proto of readdirSync(join(root, "protocols"))) {
   if (myResults.length === 0) continue;
   const admitted = layers.every((l) => layerResults[l].verdict === "admit") &&
                    myResults.every((r) => r.outcome === "pass");
+  const protoYaml = readFileSync(join(pdir, "protocol.yaml"), "utf8");
+  const protoVersion = (protoYaml.match(/^  version: (.+)$/m) ?? [, "unknown"])[1].trim();
   const ev = buildEvidence({
-    protocol: { name: proto, version: "1.0.0", bundle_digest: bundleDigest },
+    protocol: { name: proto, version: protoVersion, bundle_digest: bundleDigest },
     implDigest,
     validators: layers.map((l) => layerResults[l].validator),
     results: myResults,
@@ -47,7 +49,7 @@ for (const proto of readdirSync(join(root, "protocols"))) {
   // genesis/re-admission block on the per-protocol runtime ledger (only on admit)
   const ledger = join(evidenceRoot, proto, "runtime-ledger.jsonl");
   if (admitted) {
-    appendBlock(ledger, { name: proto, version: "1.0.0", bundle_digest: bundleDigest },
+    appendBlock(ledger, { name: proto, version: protoVersion, bundle_digest: bundleDigest },
                 implDigest, { admission: true, evidence_digest: ev.digest }, "attest-pass");
   }
   admission.push({ protocol: proto, decision: ev.decision, checks: myResults.length, digest: ev.digest });

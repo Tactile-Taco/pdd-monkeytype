@@ -45,3 +45,13 @@ with per-chunk length diagnostics — an approach worth reusing for any large
 script upload through this MCP. One redeploy occurred: the first version served
 `/` with the wrong content-type (fell through to `text/javascript`), fixed in v2.1
 (content-type now keyed on exact path match first).
+
+## Postmortem addendum (v2.2 deploy)
+
+The chunk-paste channel proved lossy: two independent ~2.5KB string literals were
+silently corrupted during agent-side re-emission (one 4-char loss, one 1-char
+substitution), each detected only by hashing. Resolution: stage chunks in KV via
+the bulk endpoint, verify per-chunk SHA-256 prefixes server-side, and assemble
+the bundle from KV inside the deploy call (hash-gated, fail-closed). Any large
+upload through this MCP should use the KV-staging pattern rather than inline
+string assembly.

@@ -1,0 +1,20 @@
+{
+  "purpose": "Byte-faithful local replica of the live v2.2 origin (https://pdd-monkeytype.pdd-typing.workers.dev) for validator authoring on egress-restricted hosts.",
+  "why": "O-UI-005 pins the screenshot baseline to the live v2.2 origin. The validator-authoring sandbox blocks general outbound fetch (see docs/09-cloudflare-deployment.md: 'the Code-Mode execute sandbox blocks general outbound fetch'), so the baseline is captured from this replica. The live origin serves these exact bytes: the Cloudflare Worker embeds implementation/public/* + the isomorphic engine modules (worker/README.md, docs/09).",
+  "pinned_assets": [
+    { "path": "assets/index.html", "git_ref": "ba41a23", "git_path": "implementation/public/index.html", "note": "frontend last changed in beb6cff, before the v2.2 deploy (076d6a2)" },
+    { "path": "assets/style.css", "git_ref": "ba41a23", "git_path": "implementation/public/style.css", "note": "verified byte-equal to live GET /style.css (fetched via egress-capable tool, 2026-07-19)" },
+    { "path": "assets/app.js", "git_ref": "ba41a23", "git_path": "implementation/public/app.js", "note": "frontend last changed in beb6cff, before the v2.2 deploy" },
+    { "path": "assets/engine/session.js", "git_ref": "21406a1", "git_path": "implementation/src/engine/session.js", "note": "engine v1.0.0 semantics (pre-CA-001 backspace retreat, d68a4a1); v2.2 predates the v1.1.0 engine" },
+    { "path": "assets/engine/words.js", "git_ref": "ba41a23", "git_path": "implementation/src/engine/words.js", "note": "unchanged since a8b1adc (pre-deploy)" },
+    { "path": "assets/engine/countChars.js", "git_ref": "ba41a23", "git_path": "implementation/src/engine/countChars.js", "note": "unchanged since a8b1adc (pre-deploy)" },
+    { "path": "assets/shared/stats.js", "git_ref": "ba41a23", "git_path": "implementation/src/shared/stats.js", "note": "unchanged since a8b1adc (pre-deploy)" }
+  ],
+  "sha256": {
+    "assets/index.html": "a9a82d1777e0b540c73005452a4e4d8cf196ec8de054fc936b7fe68d1779a9d5",
+    "assets/style.css": "be88ab124addccff431786f075a036148c242ff38c9c9d4bb8e3b23a3574f8f0",
+    "assets/app.js": "851ff8ed97fa852f8de6420e4cf4fefd3a7f5061e667401142913d1546e5fd56"
+  },
+  "api_stubs": "serve.mjs stubs same-origin /api/* with pinned, schema-shaped responses (signup/login, quotes/random pinned text, results POST 201, config GET, leaderboards empty) so the frontend is fully exercisable offline.",
+  "engine_semantics": "v1.0 (no backspace retreat); run the suite with --engine-semantics=v1.0 against this replica"
+}

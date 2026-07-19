@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>pdd-typing</title>
+<link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+<header>
+  <h1>pdd-typing</h1>
+  <nav>
+    <select id="mode">
+      <option value="time">time</option>
+      <option value="words">words</option>
+      <option value="quote">quote</option>
+      <option value="zen">zen</option>
+    </select>
+    <select id="mode2">
+      <option value="15">15</option>
+      <option value="30" selected>30</option>
+      <option value="60">60</option>
+    </select>
+    <button id="restart" title="restart (tab)">restart</button>
+    <span id="user"></span>
+    <button id="authbtn">login</button>
+    <button id="boardbtn">leaderboard</button>
+  </nav>
+</header>
+
+<main>
+  <section id="test">
+    <div id="stats"><span id="wpm">0</span> wpm &middot; <span id="acc">100</span>% &middot; <span id="timer"></span></div>
+    <div id="words" tabindex="0" aria-label="typing area"></div>
+    <p id="hint">click the text and type &mdash; tab restarts</p>
+  </section>
+
+  <section id="result" hidden>
+    <h2>result</h2>
+    <div id="resultStats"></div>
+    <canvas id="chart" width="640" height="180"></canvas>
+    <div id="saveStatus"></div>
+    <button id="next">next test</button>
+  </section>
+
+  <section id="board" hidden>
+    <h2>leaderboard &mdash; time <span id="boardMode2">15</span></h2>
+    <button data-m2="15" class="b2">15</button><button data-m2="60" class="b2">60</button>
+    <table id="boardTable"><thead><tr><th>#</th><th>name</th><th>wpm</th><th>raw</th><th>acc</th><th>consistency</th></tr></thead><tbody></tbody></table>
+  </section>
+
+  <dialog id="authdlg">
+    <h3>account</h3>
+    <input id="authName" placeholder="username" />
+    <input id="authPass" type="password" placeholder="password (min 8)" />
+    <button id="doLogin">login</button>
+    <button id="doSignup">signup</button>
+    <button id="closeDlg">close</button>
+    <p id="authMsg"></p>
+  </dialog>
+</main>
+
+<script type="module" src="/app.js"></script>
+</body>
+</html>

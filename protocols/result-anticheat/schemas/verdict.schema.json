@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": [
+    "decision",
+    "reasons"
+  ],
+  "properties": {
+    "decision": {
+      "enum": [
+        "admit",
+        "reject"
+      ]
+    },
+    "reasons": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "wpm_bound",
+          "raw_bound",
+          "acc_bound",
+          "stat_mismatch",
+          "spacing_implausible",
+          "duration_implausible",
+          "malformed"
+        ]
+      }
+    },
+    "evaluated_at": {
+      "type": "integer"
+    }
+  },
+  "additionalProperties": false
+}

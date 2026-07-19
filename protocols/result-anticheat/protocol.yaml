@@ -1,0 +1,31 @@
+protocol:
+  name: result-anticheat
+  version: 1.0.0
+  status: sealed
+purpose: >
+  Admission control for typing-test results: evaluates a completion event plus
+  key-timing statistics against plausibility invariants and returns a fail-closed
+  verdict. Independent of result storage to preserve admission authority.
+boundary:
+  in_scope:
+    - Hard bound validation (wpm/raw/acc ranges per mode)
+    - Cross-check of claimed stats against charTotal and duration
+    - Key-timing plausibility from spacing/duration stats
+    - Verdict issuance (admit | reject) with reason codes
+  out_of_scope:
+    - Bot fingerprinting, ML models, IP/UA analysis, result storage
+depends_on: []
+provides:
+  anticheat-verdict: schemas/verdict.schema.json
+consumes:
+  completed-event: typing-test-engine
+handshakes:
+  evaluate_request: schemas/evaluate-request.schema.json
+  verdict: schemas/verdict.schema.json
+invariants:
+  structural: invariants/structural.yaml
+  behavioral: invariants/behavioral.yaml
+  operational: invariants/operational.yaml
+capabilities: capability-manifest.yaml
+validators: validators/validation-plan.yaml
+evidence: evidence-requirements.yaml

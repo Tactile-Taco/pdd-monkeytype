@@ -1,0 +1,52 @@
+invariants:
+  - id: B-AC-001
+    statement: >
+      Reject when wpm or rawWpm is negative, or exceeds 350 (420 when mode=words and mode2=10).
+    severity: must
+    rationale: >
+      Protocol requirement.
+    property: "wpm>350 && !(mode==words && mode2=='10') => reject"
+    validation:
+      - property-check
+      - mutation-sanity
+  - id: B-AC-002
+    statement: >
+      Reject when acc is outside [75,100]; when lbOptOut=true the lower bound is 50.
+    severity: must
+    rationale: >
+      Protocol requirement.
+    validation:
+      - property-check
+  - id: B-AC-003
+    statement: >
+      Reject when claimed wpm deviates from charTotal/5/(testDuration/60) by more than 1.0 wpm (stat_mismatch).
+    severity: must
+    rationale: >
+      Protocol requirement.
+    property: "abs(claimed - recomputed) <= 1.0"
+    validation:
+      - property-check
+  - id: B-AC-004
+    statement: >
+      Reject when, over >=50 keystrokes, key spacing average < 20ms or spacing sd == 0 (spacing_implausible).
+    severity: must
+    rationale: >
+      Protocol requirement.
+    validation:
+      - property-check
+  - id: B-AC-005
+    statement: >
+      Fail closed: any exception or missing required statistic yields reject, never admit.
+    severity: must
+    rationale: >
+      Protocol requirement.
+    validation:
+      - contract-tests
+  - id: B-AC-006
+    statement: >
+      Determinism: identical evaluation inputs produce identical verdicts.
+    severity: must
+    rationale: >
+      Protocol requirement.
+    validation:
+      - property-check

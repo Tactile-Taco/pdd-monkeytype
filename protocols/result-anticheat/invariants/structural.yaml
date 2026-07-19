@@ -1,0 +1,18 @@
+invariants:
+  - id: S-AC-001
+    statement: >
+      Evaluation requests conform to schemas/evaluate-request.schema.json; malformed requests yield decision=reject with reason 'malformed' (never throw).
+    severity: must
+    rationale: >
+      Protocol requirement.
+    validation:
+      - schema-conformance
+      - contract-tests
+  - id: S-AC-002
+    statement: >
+      Verdicts conform to schemas/verdict.schema.json with enumerated reason codes only.
+    severity: must
+    rationale: >
+      Protocol requirement.
+    validation:
+      - schema-conformance

@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": [
+    "event",
+    "keySpacingStats",
+    "keyDurationStats",
+    "lbOptOut"
+  ],
+  "properties": {
+    "event": {
+      "$ref": "completed-event.schema.json"
+    },
+    "keySpacingStats": {
+      "type": "object",
+      "required": [
+        "average",
+        "sd"
+      ],
+      "properties": {
+        "average": {
+          "type": "number",
+          "minimum": 0
+        },
+        "sd": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "keyDurationStats": {
+      "type": "object",
+      "required": [
+        "average",
+        "sd"
+      ],
+      "properties": {
+        "average": {
+          "type": "number",
+          "minimum": 0
+        },
+        "sd": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "lbOptOut": {
+      "type": "boolean"
+    }
+  },
+  "additionalProperties": false
+}

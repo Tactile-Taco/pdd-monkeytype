@@ -1,0 +1,16 @@
+capabilities:
+  network:
+    outbound_allowlist: []
+    deny_other_outbound: true
+  filesystem:
+    read: []
+    write: []
+  dependencies:
+    allow: []
+  resources:
+    max_latency_ms_p95: 5
+    max_memory_mb: 16
+  secrets:
+    allow: []
+  background_work:
+    allowed: false

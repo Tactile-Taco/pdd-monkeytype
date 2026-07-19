@@ -1,0 +1,18 @@
+invariants:
+  - id: O-AC-001
+    statement: >
+      Pure function: no I/O, no network, no filesystem, no clock dependence beyond the evaluated_at echo, no state between evaluations.
+    severity: must
+    rationale: >
+      Protocol requirement.
+    validation:
+      - egress-monitor
+      - dependency-scan
+  - id: O-AC-002
+    statement: >
+      Evaluation p95 <= 5ms.
+    severity: must
+    rationale: >
+      Protocol requirement.
+    validation:
+      - resource-budget

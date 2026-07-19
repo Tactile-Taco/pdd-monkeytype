@@ -23,3 +23,15 @@ invariants:
       Protocol requirement.
     validation:
       - contract-tests
+  - id: O-RES-004
+    statement: >
+      All HTTP responses pass through a single response-emitting choke point:
+      the envelope helper (res.json) — no handler may bypass it with res.send,
+      res.writeHead, or framework default handlers. (Promoted from runtime
+      evidence: the favicon-404 blind spot, MT-1.)
+    severity: must
+    rationale: >
+      Runtime evidence found a response path invisible to the RVL; a single
+      choke point keeps the monitorable projection complete.
+    validation:
+      - dependency-scan

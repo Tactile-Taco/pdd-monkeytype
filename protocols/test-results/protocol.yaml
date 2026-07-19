@@ -1,6 +1,6 @@
 protocol:
   name: test-results
-  version: 1.0.0
+  version: 1.1.0
   status: sealed
 purpose: >
   Authenticated submission, admission, persistence, and read-back of typing-test

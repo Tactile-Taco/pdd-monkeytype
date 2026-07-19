@@ -76,10 +76,27 @@ prop("B-ENG-004", fc.array(word(), { minLength: 1, maxLength: 8 }), (ws) => {
   return ev.charTotal === ev.charStats[0] + ev.charStats[1] + ev.charStats[2] &&
          ev.charStats[3] === 0 && ev.wpm > 0;
 });
+// v1.1: delete within word; retreat iff previous committed word has an error; correct words sealed
 prop("B-ENG-005", fc.array(fc.constant("backspace"), { minLength: 1, maxLength: 50 }), (bs) => {
   const s = new TypingSession({ mode: "words", mode2: "3", words: ["abc", "def", "ghi"] });
   bs.forEach((_, i) => s.feed({ t: i + 1, type: "backspace" }));
-  return s.inputs[0] === "";
+  return s.inputs[0] === "" && s.wordIndex === 0; // never before start of first word
+});
+prop("B-ENG-005", fc.tuple(fc.constantFrom("abx", "axc", "abd"), fc.integer({ min: 1, max: 4 })), ([typo, nBack]) => {
+  const s = new TypingSession({ mode: "words", mode2: "3", words: ["abc", "def", "ghi"] });
+  let t = 1000;
+  for (const ch of typo) s.feed({ t: t += 100, type: "char", value: ch }); // erroneous first word
+  s.feed({ t: t += 100, type: "space" });                                    // commit with error
+  for (let i = 0; i < nBack; i++) s.feed({ t: t += 100, type: "backspace" });
+  return s.wordIndex === 0 && s.inputs[0].length === Math.max(0, typo.length - (nBack - 1)); // retreated
+});
+prop("B-ENG-005", fc.integer({ min: 1, max: 6 }), (nBack) => {
+  const s = new TypingSession({ mode: "words", mode2: "3", words: ["abc", "def", "ghi"] });
+  let t = 1000;
+  for (const ch of "abc") s.feed({ t: t += 100, type: "char", value: ch }); // correct first word
+  s.feed({ t: t += 100, type: "space" });                                   // committed correct
+  for (let i = 0; i < nBack; i++) s.feed({ t: t += 100, type: "backspace" });
+  return s.wordIndex === 1 && s.inputs[0] === "abc"; // sealed: no retreat, word untouched
 });
 prop("B-ENG-006", fc.array(word(), { minLength: 2, maxLength: 6 }), (ws) => {
   const build = () => {

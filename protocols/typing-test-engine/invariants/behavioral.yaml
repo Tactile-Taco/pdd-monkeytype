@@ -38,10 +38,18 @@ invariants:
       - property-check
   - id: B-ENG-005
     statement: >
-      Backspace never moves before the start of the current word and never alters committed words.
+      Backspace deletes one character within the current word's input. With an empty
+      current input, backspace retreats into the immediately previous committed word
+      if and only if that word's committed input differs from its target (it contains
+      an error); a fully correct committed word is sealed and cannot be re-entered.
+      Backspace never alters a sealed word.
     severity: must
     rationale: >
-      Protocol requirement.
+      Reference semantics (before-delete gate in the reference input handler):
+      retreat is allowed only into erroneous committed words; correct words are sealed.
+      Replaces the v1.0.0 under-specified "current word" reading — see
+      docs/10-critical-ambiguity-CA-001.md.
+    property: "backspace at empty input retreats iff previous committed word has an error"
     validation:
       - property-check
   - id: B-ENG-006

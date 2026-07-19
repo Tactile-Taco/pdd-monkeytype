@@ -58,8 +58,14 @@ export class TypingSession {
       this.events.push(ev);
     } else if (type === "backspace") {
       const cur = this.inputs[this.wordIndex];
-      if (cur.length > 0) {                       // B-ENG-005: never before word start
+      if (cur.length > 0) {                       // B-ENG-005: delete within current word
         this.inputs[this.wordIndex] = cur.slice(0, -1);
+        this.events.push(ev);
+      } else if (this.wordIndex > 0 &&
+                 this.inputs[this.wordIndex - 1] !== this.words[this.wordIndex - 1]) {
+        // B-ENG-005 (v1.1): retreat into the previous committed word IFF it contains
+        // an error; a fully correct committed word is sealed and cannot be re-entered.
+        this.wordIndex -= 1;
         this.events.push(ev);
       }
     } else if (type === "space") {

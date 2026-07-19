@@ -1,6 +1,6 @@
 protocol:
   name: typing-test-engine
-  version: 1.0.0
+  version: 1.1.0
   status: sealed
 purpose: >
   Client-side typing test session: word stream generation, keystroke-level input

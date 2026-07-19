@@ -1,0 +1,64 @@
+invariants:
+  - id: B-ENG-001
+    statement: >
+      wpm = (correct word chars / 5) / (testDurationSeconds / 60), rounded to 2 decimals; duration <= 0 yields 0. rawWpm substitutes (allCorrect + incorrect + extra) for the numerator.
+    severity: must
+    rationale: >
+      Protocol requirement.
+    property: "wpm(correctChars, secs) == round2(correctChars/5/(secs/60))"
+    validation:
+      - property-check
+      - mutation-sanity
+  - id: B-ENG-002
+    statement: >
+      consistency = kogasa(stddev(burstPerSecond)/mean(burstPerSecond)) with kogasa(c) = 100*(1 - tanh(c + c^3/3 + c^5/5)); NaN or undefined yields 0. keyConsistency applies the same function to keypress spacings with the final spacing sample dropped; wpmConsistency to the per-second wpm history.
+    severity: must
+    rationale: >
+      Protocol requirement.
+    property: "kogasa(c) == 100*(1-tanh(c + c^3/3 + c^5/5))"
+    validation:
+      - property-check
+      - mutation-sanity
+  - id: B-ENG-003
+    statement: >
+      acc = correctChars / (correctChars + incorrect + extra) * 100; zero attempted chars yields 0. acc is always within [0,100].
+    severity: must
+    rationale: >
+      Protocol requirement.
+    validation:
+      - property-check
+  - id: B-ENG-004
+    statement: >
+      Character accounting is conservative: for every keystroke stream, charTotal = allCorrect + incorrect + extra, and correct + incorrect + extra + missed equals the total target characters presented in committed words.
+    severity: must
+    rationale: >
+      Protocol requirement.
+    property: "conservation over keystroke streams"
+    validation:
+      - property-check
+  - id: B-ENG-005
+    statement: >
+      Backspace never moves before the start of the current word and never alters committed words.
+    severity: must
+    rationale: >
+      Protocol requirement.
+    validation:
+      - property-check
+  - id: B-ENG-006
+    statement: >
+      Determinism: the same word list, config, and keystroke event stream (with identical timestamps) produces an identical completion event.
+    severity: must
+    rationale: >
+      Protocol requirement.
+    property: "replay(k) == replay(k)"
+    validation:
+      - property-check
+  - id: B-ENG-007
+    statement: >
+      Time mode completes exactly when the timer expires; words mode completes when the final word is committed; zen mode never self-completes; a bailed-out session sets bailedOut=true and still emits a completion event.
+    severity: must
+    rationale: >
+      Protocol requirement.
+    validation:
+      - contract-tests
+      - property-check

@@ -1,0 +1,34 @@
+invariants:
+  - id: O-ENG-001
+    statement: >
+      No network access, filesystem access, or storage writes during an active test session; the completion event is emitted to the caller, never transmitted by the engine.
+    severity: must
+    rationale: >
+      Protocol requirement.
+    validation:
+      - egress-monitor
+      - manual-review
+  - id: O-ENG-002
+    statement: >
+      Keystroke handling completes in <=5ms per event (no per-keystroke allocation spikes beyond O(word length)).
+    severity: must
+    rationale: >
+      Protocol requirement.
+    validation:
+      - resource-budget
+  - id: O-ENG-003
+    statement: >
+      Zero runtime dependencies; the engine is pure computation over injected word lists and config.
+    severity: must
+    rationale: >
+      Protocol requirement.
+    validation:
+      - dependency-scan
+  - id: O-ENG-004
+    statement: >
+      No background timers remain after session end (timer teardown on complete/restart/bail).
+    severity: must
+    rationale: >
+      Protocol requirement.
+    validation:
+      - manual-review

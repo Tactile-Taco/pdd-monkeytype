@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": [
+    "t",
+    "type"
+  ],
+  "properties": {
+    "t": {
+      "type": "number",
+      "minimum": 0
+    },
+    "type": {
+      "enum": [
+        "char",
+        "backspace",
+        "space",
+        "restart"
+      ]
+    },
+    "value": {
+      "type": "string",
+      "maxLength": 1
+    }
+  },
+  "additionalProperties": false
+}

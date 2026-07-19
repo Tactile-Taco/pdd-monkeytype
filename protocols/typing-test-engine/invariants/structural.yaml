@@ -1,0 +1,26 @@
+invariants:
+  - id: S-ENG-001
+    statement: >
+      Completion events conform to schemas/completed-event.schema.json, including charStats as the fixed-position tuple [correct, incorrect, extra, missed] and chartData arrays capped at 122 samples.
+    severity: must
+    rationale: >
+      Protocol requirement.
+    validation:
+      - schema-conformance
+      - property-check
+  - id: S-ENG-002
+    statement: >
+      The engine accepts a keystroke event stream per schemas/keystroke-event.schema.json; out-of-contract events are ignored without corrupting session state.
+    severity: must
+    rationale: >
+      Protocol requirement.
+    validation:
+      - contract-tests
+  - id: S-ENG-003
+    statement: >
+      Mode is one of time|words|quote|zen|custom; mode2 carries the mode parameter (seconds, word count, quote id, or custom marker) as a string.
+    severity: must
+    rationale: >
+      Protocol requirement.
+    validation:
+      - schema-conformance

@@ -1,0 +1,33 @@
+protocol:
+  name: typing-test-engine
+  version: 1.0.0
+  status: sealed
+purpose: >
+  Client-side typing test session: word stream generation, keystroke-level input
+  processing, caret/word navigation, per-second stat sampling, and production of
+  a completion event conforming to the CompletedEvent handshake. Modes: time,
+  words, quote, zen, custom.
+boundary:
+  in_scope:
+    - Session lifecycle (start, keystroke, backspace, word commit, restart, bail)
+    - Character accounting (correct, incorrect, extra, missed)
+    - Stat computation (wpm, rawWpm, acc, consistency family) and chart sampling
+    - Completion event production for test-results
+  out_of_scope:
+    - Rendering/visual presentation, sound, theme application, persistence of results
+depends_on: [user-config, quote-library]
+provides:
+  completed-event: schemas/completed-event.schema.json
+consumes:
+  user-config: user-config
+  quote: quote-library
+handshakes:
+  completed_event: schemas/completed-event.schema.json
+  keystroke_event: schemas/keystroke-event.schema.json
+invariants:
+  structural: invariants/structural.yaml
+  behavioral: invariants/behavioral.yaml
+  operational: invariants/operational.yaml
+capabilities: capability-manifest.yaml
+validators: validators/validation-plan.yaml
+evidence: evidence-requirements.yaml

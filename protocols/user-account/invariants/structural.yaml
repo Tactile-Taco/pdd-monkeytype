@@ -1,0 +1,26 @@
+invariants:
+  - id: S-ACC-001
+    statement: >
+      Signup requests must conform to schemas/signup-request.schema.json; usernames match ^[a-zA-Z0-9_-]{3,16}$ and passwords are >=8 chars.
+    severity: must
+    rationale: >
+      Protocol requirement.
+    validation:
+      - schema-conformance
+      - contract-tests
+  - id: S-ACC-002
+    statement: >
+      All failures return the ErrorEnvelope schema with one of the enumerated codes.
+    severity: must
+    rationale: >
+      Protocol requirement.
+    validation:
+      - contract-tests
+  - id: S-ACC-003
+    statement: >
+      Auth responses contain an opaque token string and a profile per schemas/profile.schema.json.
+    severity: must
+    rationale: >
+      Protocol requirement.
+    validation:
+      - schema-conformance

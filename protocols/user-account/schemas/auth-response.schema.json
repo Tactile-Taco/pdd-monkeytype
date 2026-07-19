@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": [
+    "token",
+    "profile"
+  ],
+  "properties": {
+    "token": {
+      "type": "string"
+    },
+    "profile": {
+      "$ref": "profile.schema.json"
+    }
+  },
+  "additionalProperties": false
+}

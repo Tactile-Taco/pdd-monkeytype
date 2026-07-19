@@ -1,0 +1,33 @@
+protocol:
+  name: user-account
+  version: 1.0.0
+  status: sealed
+purpose: >
+  Credential-based account lifecycle: signup, login, opaque bearer token
+  issuance/verification/revocation, and public profile read. Identity provider
+  for all other protocols.
+boundary:
+  in_scope:
+    - Account creation with unique case-insensitive username
+    - Password verification and token lifecycle
+    - Profile read (name, addedAt)
+  out_of_scope:
+    - Social/OAuth login, email verification, password reset, roles beyond moderator flag
+depends_on: []
+provides:
+  auth-token: schemas/token.schema.json
+  profile: schemas/profile.schema.json
+consumes: {}
+handshakes:
+  signup_request: schemas/signup-request.schema.json
+  auth_response: schemas/auth-response.schema.json
+  token: schemas/token.schema.json
+  profile: schemas/profile.schema.json
+  error: schemas/error.schema.json
+invariants:
+  structural: invariants/structural.yaml
+  behavioral: invariants/behavioral.yaml
+  operational: invariants/operational.yaml
+capabilities: capability-manifest.yaml
+validators: validators/validation-plan.yaml
+evidence: evidence-requirements.yaml

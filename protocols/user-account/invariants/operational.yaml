@@ -1,0 +1,26 @@
+invariants:
+  - id: O-ACC-001
+    statement: >
+      Passwords are never stored or logged in plaintext; only salted hashes (scrypt) persist.
+    severity: must
+    rationale: >
+      Protocol requirement.
+    validation:
+      - dependency-scan
+      - manual-review
+  - id: O-ACC-002
+    statement: >
+      No outbound network calls; at most one store write per mutating request.
+    severity: must
+    rationale: >
+      Protocol requirement.
+    validation:
+      - egress-monitor
+  - id: O-ACC-003
+    statement: >
+      Token verification p95 latency <= 100ms with no network access.
+    severity: must
+    rationale: >
+      Protocol requirement.
+    validation:
+      - resource-budget

@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": [
+    "name",
+    "password"
+  ],
+  "properties": {
+    "name": {
+      "type": "string",
+      "pattern": "^[a-zA-Z0-9_-]{3,16}$"
+    },
+    "password": {
+      "type": "string",
+      "minLength": 8
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,18 @@
+capabilities:
+  network:
+    outbound_allowlist: []
+    deny_other_outbound: true
+  filesystem:
+    read: []
+    write: [data/accounts.json]
+  database:
+    max_writes_per_request: 1
+  dependencies:
+    allow: [express, node:crypto]
+  resources:
+    max_latency_ms_p95: 100
+    max_memory_mb: 128
+  secrets:
+    allow: [PDD_TOKEN_SECRET]
+  background_work:
+    allowed: false

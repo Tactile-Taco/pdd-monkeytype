@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": [
+    "uid",
+    "name",
+    "addedAt"
+  ],
+  "properties": {
+    "uid": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "addedAt": {
+      "type": "integer"
+    },
+    "moderator": {
+      "type": "boolean"
+    }
+  },
+  "additionalProperties": false
+}

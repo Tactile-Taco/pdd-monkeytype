@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": [
+    "uid",
+    "exp"
+  ],
+  "properties": {
+    "uid": {
+      "type": "string"
+    },
+    "exp": {
+      "type": "integer"
+    }
+  },
+  "additionalProperties": true,
+  "description": "Verified token claims produced by the verify() handshake. Wire token itself is opaque."
+}

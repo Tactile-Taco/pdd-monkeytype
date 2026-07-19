@@ -1,0 +1,104 @@
+invariants:
+  - id: O-UI-001
+    statement: >
+      Contrast (WCAG 2.x relative-luminance formula over computed colors):
+      --text on --bg >= 4.5; --error on --bg >= 3.0; --caret on --bg >= 3.0.
+      The 3.0 floor for --error relies on word-stream letters rendering at
+      >= 24px computed font-size (WCAG large-text), which the validator asserts
+      in the same pass.
+    severity: must
+    rationale: >
+      Orchestrator intent 1d, MODIFIED: the orchestrator specified >= 4.5 for
+      error-on-background, but the reference-informed palette they supplied
+      measures 2.70:1 (#ca4754 on #323437) — the two intents conflict. 3.0 with
+      the large-text clause preserves the reference aesthetic and WCAG
+      conformance for its actual size. See round-01 counterproposal, point P2.
+    property: "contrast(text,bg) >= 4.5 and contrast(error,bg) >= 3.0 and contrast(caret,bg) >= 3.0"
+    validation:
+      - computed-style-metrics
+  - id: O-UI-002
+    statement: >
+      Token bands, computed per token from computed style: (i) dark family —
+      relative luminance(--bg) <= 0.2 and luminance(--text) > luminance(--bg);
+      (ii) error hue — --error and --error-extra convert (rgb -> HSL) to
+      h in [0,15] union [340,360] with s >= 0.45. Holds for every shipped
+      theme's token set (each validated against schemas/theme.schema.json first).
+    severity: must
+    rationale: >
+      Orchestrator intent 1d, MODIFIED and adjudicated round 2 (P3 accepted):
+      saturation floor relaxed 0.50 -> 0.45 because the reference extra-error
+      color #7e2a33 measures s = 0.500 to rounding and would flap on float
+      error. Dark-family and hue bands merged into one band-conformance
+      invariant to hold the must-budget; the validator reports per-clause
+      failure.
+    property: "L(bg) <= 0.2 and L(text) > L(bg) and h(error,error-extra) in redband and s >= 0.45"
+    validation:
+      - computed-style-metrics
+  - id: O-UI-003
+    statement: >
+      Letter-state color distinction: the computed colors of the four letter
+      states {untyped, correct, incorrect, extra} are pairwise distinct with
+      max RGB channel delta >= 32 between every pair, on the same computed
+      background. (incorrect and extra must differ from correct AND from each
+      other; untyped must differ from all typed states.)
+    severity: must
+    rationale: >
+      Orchestrator intent 1c, STRENGTHENED: 'differ from correct' is necessary
+      but insufficient — incorrect vs extra and untyped vs typed must also be
+      separable or the reader cannot decode history. 32/255 channel delta is
+      the explicit perceptual floor; the reference palette's minimum pair
+      (extra vs untyped) measures 60.
+    property: "for all state pairs: maxChannelDelta(colorA, colorB) >= 32"
+    validation:
+      - computed-style-metrics
+  - id: O-UI-004
+    statement: >
+      Monospace rendering: in the word stream's computed font, the rendered
+      advance widths of the narrowest and widest lowercase glyphs ('i' and 'm',
+      canvas-measured with the computed font shorthand) are equal within 1px,
+      and every letter element's computed font-family resolves through a
+      monospace generic fallback.
+    severity: must
+    rationale: >
+      Orchestrator intent 1a. Advance-width equality is the machine-checkable
+      essence of 'monospace'; it does not dictate the font stack (delegated).
+    property: "adv('i') == adv('m') +/- 1px under computed font"
+    validation:
+      - computed-style-metrics
+  - id: O-UI-005
+    statement: >
+      Screenshot coherence: captured scenes match the admitted baseline set
+      (protocols/ui-presentation/evidence/baseline/) with >= 85% of pixels within
+      per-channel delta 16, at viewport 1280x800, deviceScaleFactor 1, default
+      theme, with quote/config API responses pinned by the validator. Scenes:
+      (1) fresh test view, (2) mid-test after five perfectly typed words. The
+      baseline is captured BY the validator harness from the live v2.2 origin
+      (https://pdd-monkeytype.pdd-typing.workers.dev) at validator-authoring
+      time (adjudicated round 2, Q1: pre-caret reference aesthetic; the caret's
+      ~0.01% pixel footprint is absorbed by the 0.85 threshold). Baseline and
+      candidate captures must run on the same validator host image (system font
+      rasterization is host-dependent); cross-host comparison is not admitted.
+      Re-baselining after the caret lands is a minor version event.
+    severity: must
+    rationale: >
+      Orchestrator constraint: coherence guard. Exactly one screenshot invariant
+      (within the 1-2 budget); two scenes inside it bound cost. Tolerance band
+      and sampling stated explicitly per friction discipline. Baseline identity
+      adjudicated round 2 (Q1): v2.2 pre-caret origin, harness-captured,
+      host-pinned; re-baseline post-caret via minor version event.
+    validation:
+      - screenshot-similarity
+  - id: O-UI-006
+    statement: >
+      Same-origin rendering: during the full test flow (load, session, results),
+      the page issues no requests to third-party origins (no CDN fonts, scripts,
+      styles, images, or telemetry). All rendering assets are same-origin and
+      system font stacks only.
+    severity: must
+    rationale: >
+      Author addition: external font/CDN fetches would break monospace
+      determinism (O-UI-004), screenshot reproducibility (O-UI-005), offline
+      Workers substitutability, and the zero-runtime-dependency posture of the
+      engine bundle. Cheap request-log audit.
+    validation:
+      - request-audit

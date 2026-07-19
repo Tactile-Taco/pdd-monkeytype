@@ -1,0 +1,95 @@
+invariants:
+  - id: B-UI-001
+    statement: >
+      A single caret element exists in the test view whenever the test view is
+      active. Logical caret position is DEFINED as (wordIndex, n) where n =
+      length of the engine's current-word input (inputs[wordIndex]); the caret's
+      bounding rect tracks it after every accepted keystroke, backspace retreat,
+      and word commit: horizontally within 2px of (right edge of letter n-1 of the
+      active word, or left edge of letter 0 when n == 0), vertically overlapping
+      the active word's line box. The caret is visible: display != none,
+      visibility != hidden, rect area >= 4px^2, opacity >= 0.5 in at least one of
+      three samples 250ms apart (blink phase tolerance; blink itself delegated).
+    severity: must
+    rationale: >
+      Orchestrator intent 1b. The engine exposes no caret object; the logical
+      caret position definition resolves a critical ambiguity by definition
+      (see ambiguity-log, CA-UI-01, confirmed round 2) and makes tracking
+      machine-checkable in a real-browser layout engine. Caret blink and shape
+      are delegated (adjudicated round 2, Q4); the 3-sample visibility check
+      absorbs blink phase. The caret is net-new build (P4 acknowledged).
+    property: "after each feed: |caret.x - boundary(activeWord, n)| <= 2px"
+    validation:
+      - caret-tracking
+  - id: B-UI-002
+    statement: >
+      After every keystroke, the state class of every letter of every rendered
+      word equals the engine per-character accounting for that position:
+      typed char == target char -> correct; typed != target -> incorrect;
+      typed char beyond target length -> extra; untyped -> no state class.
+      Checked over scripted streams (chars, errors, extras, backspaces, word
+      commits, backspace retreats) and fuzzed keystroke streams.
+    severity: must
+    rationale: >
+      Orchestrator intent 1c, strengthened: classes must not merely exist, they
+      must be faithful to engine state after every event, not only on commit.
+    property: "for all letters: classOf(letter) == engineState(position)"
+    validation:
+      - dom-state-fidelity
+  - id: B-UI-003
+    statement: >
+      Typed-history stability: within a session (between restart/complete
+      boundaries), DOM mutations attributable to a keystroke are confined to the
+      word element(s) active immediately before or after that keystroke, plus the
+      caret and the live-stats region. Committed words are not re-rendered,
+      reflowed, or re-classed by later keystrokes. Full re-render is permitted
+      only on restart/new-test.
+    severity: must
+    rationale: >
+      Orchestrator intent 1f. Mutation-confinement formulation is checkable with
+      a MutationObserver and pins the intent (stable history) without forbidding
+      the commit-transition class changes on the word being left.
+    property: "mutated .word set <= {active_before, active_after} per keystroke"
+    validation:
+      - dom-mutation-confinement
+  - id: B-UI-004
+    statement: >
+      On completed_event, the test view is hidden and the results view shown, and
+      the results view's text presents the wpm and acc values of the CompletedEvent
+      payload exactly (numeric equality with the payload values as rendered by
+      canonical number-to-string; decoration such as a '%' suffix or labels is
+      delegated). Rounded/integer display of these two values does not conform.
+    severity: must
+    rationale: >
+      Orchestrator intent 1e. Exact-value rule resolves the formatting ambiguity
+      up front (cosmetic latitude would let 'matches' drift to 'approximately').
+    validation:
+      - results-fidelity
+  - id: B-UI-005
+    statement: >
+      The active theme is applied by setting the sealed tokens on :root; a theme
+      value from user-config selects a token set, and an unknown or absent theme
+      value falls back to the default dark theme (which satisfies the charter
+      bands). Applying a theme changes token values only, never structure.
+    severity: should
+    rationale: >
+      Orchestrator intent 1d partial: consumption of user-config.theme.
+      Adjudicated round 2 (Q2): stays should — the multi-theme catalog is
+      transient, theme arrives as a config value only (no theme endpoint), and
+      a single charter-conformant theme ships this iteration for friction
+      minimization. Upgrade path if multi-theme becomes persistent: minor
+      version event promoting this to must plus a catalog handshake.
+    validation:
+      - computed-style-metrics
+  - id: B-UI-006
+    statement: >
+      During an active session the active word remains within the visible
+      scrollport of the word-stream container (its bounding rect intersects the
+      container's visible region) after every keystroke.
+    severity: should
+    rationale: >
+      Author addition: long sessions (time mode, 200-word caps) scroll; an
+      off-screen active word silently breaks every visual invariant above.
+      Should-level because 'visible region' tolerances are layout-sensitive.
+    validation:
+      - dom-structure

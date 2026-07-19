@@ -1,0 +1,26 @@
+evidence_requirements:
+  required:
+    - protocol_version
+    - implementation_artifact_hash
+    - validator_versions
+    - validation_results
+    - dependency_manifest
+    - discovery_log
+    - baseline_screenshot_manifest  # hashes + capture metadata for O-UI-005 baseline set
+  baseline:
+    path: protocols/ui-presentation/evidence/baseline/
+    source_origin: https://pdd-monkeytype.pdd-typing.workers.dev  # v2.2 pre-caret, adjudicated round 2 (Q1)
+    captured_by: validator-harness at validator-authoring time
+    host_pinned: true  # compare same-host captures only; re-baseline post-caret = minor version event
+  attestations:
+    signed: true
+    signer: evidence-keeper
+  replay:
+    deterministic_replay_required: true
+    required_environment_metadata:
+      - runtime
+      - operating_system
+      - dependency_lockfile
+      - chromium_version
+      - host_image_id        # screenshot replay validity is host-pinned (O-UI-005)
+      - viewport

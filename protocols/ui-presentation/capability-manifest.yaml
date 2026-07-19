@@ -1,0 +1,23 @@
+capabilities:
+  network:
+    outbound_allowlist:
+      - same-origin /api/* (quotes, config, results, account)
+    deny_other_outbound: true
+    during_active_test: same-origin only; none required for rendering
+  filesystem:
+    read: []
+    write: []
+  storage:
+    allow:
+      - localStorage (auth token, cached config/theme)
+    deny: [cookies-third-party, indexeddb]
+  dependencies:
+    allow: []  # zero runtime dependencies; vanilla ES modules, system font stack
+  resources:
+    max_total_client_asset_bytes: 1048576  # uncompressed html+css+js sum
+  secrets:
+    allow: []  # auth token is user-account's concern; UI stores it, never logs it
+  background_work:
+    allowed: true
+    max_stats_ticker_hz: 4
+    teardown_on_session_end: true

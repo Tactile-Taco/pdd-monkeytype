@@ -1,0 +1,22 @@
+validation_plan:
+  layers: [structural, behavioral, operational]
+  admission_rule: all `must` invariants pass; screenshot-similarity within tolerance band; zero open mutation-suspect flags
+  substrate: puppeteer-core + headless Chromium (real layout engine required; jsdom-class runners are insufficient — no layout, no canvas measureText, no screenshots)
+  property_runs_default: 50
+  property_runs_nightly: 200
+  coverage_gate: none  # presentation layer is governed by DOM/computed-style assertion suites, not line coverage; flagged in round-01 notes
+  environment:
+    viewport: { width: 1280, height: 800, deviceScaleFactor: 1 }
+    baseline_origin: https://pdd-monkeytype.pdd-typing.workers.dev  # v2.2 pre-caret (Q1)
+    baseline_path: protocols/ui-presentation/evidence/baseline/
+    baseline_host_pinning: screenshot baseline and candidate captures must share host image
+  tolerances:
+    caret_position_px: 2
+    reading_order_px: 2
+    monospace_advance_px: 1
+    letter_state_min_channel_delta: 32
+    caret_visibility: { samples: 3, interval_ms: 250, min_visible_samples: 1, min_area_px2: 4, min_opacity: 0.5 }
+    screenshot:
+      pixel_channel_tolerance: 16
+      min_similar_pixel_fraction: 0.85
+      scenes: [fresh-test, mid-test-5-words]

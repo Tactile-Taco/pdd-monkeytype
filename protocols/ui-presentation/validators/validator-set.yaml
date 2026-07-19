@@ -1,0 +1,34 @@
+validators:
+  - id: bundle-lint
+    version: "1.0.0"
+    layer: structural
+  - id: schema-conformance
+    version: "1.0.0"
+    layer: structural
+  - id: dom-structure
+    version: "0.1.0"
+    layer: structural
+  - id: keystroke-contract
+    version: "0.1.0"
+    layer: structural
+  - id: caret-tracking
+    version: "0.1.0"
+    layer: behavioral
+  - id: dom-state-fidelity
+    version: "0.1.0"
+    layer: behavioral
+  - id: dom-mutation-confinement
+    version: "0.1.0"
+    layer: behavioral
+  - id: results-fidelity
+    version: "0.1.0"
+    layer: behavioral
+  - id: computed-style-metrics
+    version: "0.1.0"
+    layer: operational
+  - id: screenshot-similarity
+    version: "0.1.0"
+    layer: operational
+  - id: request-audit
+    version: "0.1.0"
+    layer: operational

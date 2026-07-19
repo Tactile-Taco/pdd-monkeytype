@@ -1,0 +1,45 @@
+{
+  "schema": 1,
+  "protocol": "ui-presentation@1.0.0",
+  "invariant": "O-UI-005",
+  "source_origin": "https://pdd-monkeytype.pdd-typing.workers.dev (via pinned local replica)",
+  "captured_by": "validator-harness at validator-authoring time",
+  "capture_note": "Authoring host had no egress to the live origin (docs/09: sandbox blocks general outbound fetch). Captured from the byte-faithful pinned replica (validators/reference-origin/, git-pinned v2.2 bytes; style.css verified byte-equal to live GET /style.css via egress-capable fetch). Live-origin recapture on an egress-capable host = same command with --origin https://pdd-monkeytype.pdd-typing.workers.dev.",
+  "host_pinned": true,
+  "host_image_id": "sha256:76f2dfa0d4c260b313cddcc9665e3c6709e2166538566d8d61adac9dfbd2d8b9",
+  "chromium_version": "Chrome/150.0.7871.114",
+  "runtime": "v20.20.2",
+  "operating_system": "linux/x64 5.10.134-18.0.11.lifsea8.x86_64",
+  "viewport": {
+    "width": 1280,
+    "height": 800,
+    "deviceScaleFactor": 1
+  },
+  "tolerances": {
+    "pixel_channel_tolerance": 16,
+    "min_similar_pixel_fraction": 0.85
+  },
+  "scenes": {
+    "fresh-test": {
+      "file": "fresh-test.png",
+      "sha256": "395bec8d38800e92747651a5e4fe888d8d9820093835ec824baa9b4ed7af499c",
+      "viewport": {
+        "width": 1280,
+        "height": 800,
+        "deviceScaleFactor": 1
+      },
+      "host_image_id": "sha256:76f2dfa0d4c260b313cddcc9665e3c6709e2166538566d8d61adac9dfbd2d8b9"
+    },
+    "mid-test-5-words": {
+      "file": "mid-test-5-words.png",
+      "sha256": "aa849da8e779e962dd31a5a75746863a8be32e8a2f82bde6c6fca23010f531a7",
+      "viewport": {
+        "width": 1280,
+        "height": 800,
+        "deviceScaleFactor": 1
+      },
+      "host_image_id": "sha256:76f2dfa0d4c260b313cddcc9665e3c6709e2166538566d8d61adac9dfbd2d8b9"
+    }
+  },
+  "captured_at": "2026-07-19T17:06:05.635Z"
+}

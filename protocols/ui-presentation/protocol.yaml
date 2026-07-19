@@ -1,0 +1,40 @@
+protocol:
+  name: ui-presentation
+  version: 1.0.0
+  status: sealed
+purpose: >
+  Browser presentation layer for the typing test: monospace word-stream
+  rendering with per-letter state, active-word and caret tracking of engine
+  session state, a design-token theme charter (named CSS custom properties
+  with tolerance bands, not exact values), and a results view that mirrors
+  the CompletedEvent payload. Presentation only — no game logic, no network
+  protocol semantics.
+boundary:
+  in_scope:
+    - Word-stream DOM structure (container, word elements, letter elements, reading order)
+    - Per-letter state distinguishability (correct / incorrect / extra / untyped)
+    - Active-word marking and caret element tracking of engine caret state
+    - Design-token charter (required tokens on :root, contrast and hue/luminance bands)
+    - Results view rendering of the CompletedEvent payload (wpm, acc)
+    - DOM stability of committed words during an active session
+  out_of_scope:
+    - Engine semantics, stat formulas, completion conditions (typing-test-engine)
+    - Config persistence and delivery (user-config), auth, leaderboards, server-side routing
+    - Exact hex values, font stack choice, spacing scale, radii, caret shape/blink, animation timing (delegated cosmetics)
+depends_on: [typing-test-engine, user-config]
+provides:
+  theme-charter: schemas/theme.schema.json
+consumes:
+  typing-test-engine: typing-test-engine
+  user-config: user-config
+handshakes:
+  theme_charter: schemas/theme.schema.json
+  keystroke_event: ../typing-test-engine/schemas/keystroke-event.schema.json
+  completed_event: ../typing-test-engine/schemas/completed-event.schema.json
+invariants:
+  structural: invariants/structural.yaml
+  behavioral: invariants/behavioral.yaml
+  operational: invariants/operational.yaml
+capabilities: capability-manifest.yaml
+validators: validators/validation-plan.yaml
+evidence: evidence-requirements.yaml

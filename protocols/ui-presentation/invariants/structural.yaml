@@ -1,0 +1,68 @@
+invariants:
+  - id: S-UI-001
+    statement: >
+      The test view contains a word-stream container holding one word element per
+      engine target word, in document order equal to the engine word list order,
+      and in visual reading order (row-major: bounding-rect top then left,
+      non-decreasing, 2px tolerance). Each word element carries a stable index
+      binding (e.g. data attribute) to its engine word index. Word text content
+      equals the target word text.
+    severity: must
+    rationale: >
+      Orchestrator intent 1a: the word stream is the primary surface; reading
+      order must match the engine sequence for per-letter checks to be meaningful.
+    property: "for all i: words[i].index == i and rect(words[i]) precedes rect(words[i+1]) row-major"
+    validation:
+      - dom-structure
+  - id: S-UI-002
+    statement: >
+      Every rendered letter of every word is its own element carrying at most one
+      state class from the sealed vocabulary {correct, incorrect, extra}; a letter
+      with no state class is untyped. State classes are the contract point; all
+      other styling is delegated.
+    severity: must
+    rationale: >
+      Orchestrator intent 1c: per-letter state must be DOM-assertable. Sealing the
+      class vocabulary (not the styling) is the minimal machine-checkable contract;
+      renaming freedom would cost validator complexity without buying substitutability.
+      Adjudicated round 2 (P6 accepted): vocabulary sealed verbatim — single client
+      dialect, indirection unjustified.
+    validation:
+      - dom-structure
+  - id: S-UI-003
+    statement: >
+      During an active session, exactly one word element carries the active-word
+      class at any time, and its index equals the engine session wordIndex.
+    severity: must
+    rationale: >
+      Orchestrator intent 1a: active word visually distinguished, DOM-assertable.
+    property: "count(.word.active) == 1 and index(.word.active) == session.wordIndex"
+    validation:
+      - dom-structure
+  - id: S-UI-004
+    statement: >
+      The stylesheet defines the sealed token set on :root as CSS custom
+      properties: --bg, --main, --caret, --text, --sub, --error, --error-extra.
+      Each resolves via computed style to a parseable color. Token VALUES are
+      delegated within the bands of O-UI-001..O-UI-003; token NAMES are sealed.
+    severity: must
+    rationale: >
+      Orchestrator intent 1d (theme charter): named tokens with tolerance bands,
+      not exact values. --error-extra added by the author (needed to render the
+      extra letter state distinctly per S-UI-002).
+    validation:
+      - computed-style-metrics
+  - id: S-UI-005
+    statement: >
+      Every keystroke dispatched from the UI to the engine conforms to
+      ../typing-test-engine/schemas/keystroke-event.schema.json.
+    severity: should
+    rationale: >
+      Author addition: protects the engine handshake at its producer. Demoted to
+      should because the engine already ignores out-of-contract events (S-ENG-002),
+      so failure degrades rather than corrupts; the validator must rewrite the
+      served engine module at request time to capture feed() arguments, which is
+      the priciest structural check. Adjudicated round 2: remains should
+      (merge levers not exercised).
+    validation:
+      - keystroke-contract

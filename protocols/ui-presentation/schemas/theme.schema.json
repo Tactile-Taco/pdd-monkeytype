@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "theme.schema.json",
+  "title": "Theme charter — token set shape",
+  "description": "Shape contract for a named theme's design-token set. Band constraints (contrast, luminance, hue) are NOT expressible here; they are enforced by the computed-style-metrics validator per O-UI-001..O-UI-003.",
+  "type": "object",
+  "required": ["name", "tokens"],
+  "properties": {
+    "name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "tokens": {
+      "type": "object",
+      "required": ["--bg", "--main", "--caret", "--text", "--sub", "--error", "--error-extra"],
+      "properties": {
+        "--bg": { "$ref": "#/$defs/colorToken" },
+        "--main": { "$ref": "#/$defs/colorToken" },
+        "--caret": { "$ref": "#/$defs/colorToken" },
+        "--text": { "$ref": "#/$defs/colorToken" },
+        "--sub": { "$ref": "#/$defs/colorToken" },
+        "--error": { "$ref": "#/$defs/colorToken" },
+        "--error-extra": { "$ref": "#/$defs/colorToken" }
+      },
+      "additionalProperties": { "$ref": "#/$defs/colorToken" }
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "colorToken": {
+      "type": "string",
+      "pattern": "^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
+    }
+  }
+}

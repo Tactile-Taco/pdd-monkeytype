@@ -162,6 +162,18 @@ const p95 = (xs) => { const s = [...xs].sort((a, b) => a - b); return s[Math.flo
   rec("O-ACC-001", leaks.length === 0, leaks.join(";") || "secret access within allowlist; no credential logging");
 }
 
+// ---------- 6. response choke point (O-RES-004, v1.1) ----------
+{
+  const srvDir = join(root, "implementation", "src", "server");
+  let bypasses = [];
+  for (const f of readdirSync(srvDir)) {
+    const src = readFileSync(join(srvDir, f), "utf8");
+    if (/res\.send\(|res\.writeHead\(|res\.sendStatus\(/.test(src) && f !== "rvl.js") bypasses.push(f);
+  }
+  rec("O-RES-004", bypasses.length === 0,
+      bypasses.join(";") || "all responses via res.json choke point");
+}
+
 const failed = results.filter((r) => r.outcome === "fail");
 const out = { layer: "operational", validator: { id: "dependency-scan+egress-monitor+resource-budget", version: "1.0.0" },
               results, verdict: failed.length === 0 ? "admit" : "reject",

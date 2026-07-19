@@ -1,0 +1,17 @@
+invariants:
+  - id: S-QT-001
+    statement: >
+      Quotes conform to schemas/quote.schema.json; group is an integer in 0..3; length = character count of text.
+    severity: must
+    rationale: >
+      Protocol requirement.
+    validation:
+      - schema-conformance
+  - id: S-QT-002
+    statement: >
+      All failures return the ErrorEnvelope schema.
+    severity: must
+    rationale: >
+      Protocol requirement.
+    validation:
+      - contract-tests

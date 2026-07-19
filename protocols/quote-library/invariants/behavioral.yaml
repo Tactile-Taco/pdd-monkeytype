@@ -1,0 +1,42 @@
+invariants:
+  - id: B-QT-001
+    statement: >
+      Random fetch returns only approved quotes matching the requested language (and group when specified); pending quotes are never served.
+    severity: must
+    rationale: >
+      Protocol requirement.
+    property: "fetch(lang,g) => approved(q) && q.language==lang && (g==null || q.group==g)"
+    validation:
+      - property-check
+  - id: B-QT-002
+    statement: >
+      A quote's group is exactly the index of the configured length range containing its length: groups [[1,100],[101,300],[301,600],[601,inf)].
+    severity: must
+    rationale: >
+      Protocol requirement.
+    validation:
+      - property-check
+  - id: B-QT-003
+    statement: >
+      Submission creates a pending (approved=false) quote; identical (language, normalized text) resubmission returns the existing quote without a second write.
+    severity: must
+    rationale: >
+      Protocol requirement.
+    validation:
+      - property-check
+  - id: B-QT-004
+    statement: >
+      Only moderator accounts can approve; approval flips approved to true and is idempotent.
+    severity: must
+    rationale: >
+      Protocol requirement.
+    validation:
+      - contract-tests
+  - id: B-QT-005
+    statement: >
+      Rating average is the arithmetic mean of all ratings in [1,5]; a user's re-rating replaces their prior rating rather than adding.
+    severity: must
+    rationale: >
+      Protocol requirement.
+    validation:
+      - property-check

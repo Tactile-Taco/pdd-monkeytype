@@ -7,8 +7,15 @@ import { round2, calculateWpm } from "/shared/stats.js";
 const $ = (id) => document.getElementById(id);
 const wordsEl = $("words"), wpmEl = $("wpm"), accEl = $("acc"), timerEl = $("timer");
 
+// Caret element (ui-presentation B-UI-001): one per test view, repositioned after
+// every keystroke. Logical position = (wordIndex, n), n = inputs[wordIndex].length
+// (CA-UI-01 reading A: insertion point after the last typed char of the active word).
+const caretEl = document.createElement("div");
+caretEl.id = "caret";
+caretEl.setAttribute("aria-hidden", "true");
+
 let token = localStorage.getItem("pdd_token") || null;
-let session = null, targetWords = [], ticker = null, activeWordIdx = 0;
+let session = null, targetWords = [], ticker = null;
 
 // ---------- auth ----------
 async function api(path, opts = {}) {
@@ -26,7 +33,7 @@ function refreshUser() {
 }
 $("authbtn").onclick = async () => {
   if (token) { await api("/api/account/logout", { method: "POST", body: "{}" });
-    token = null; localStorage.removeItem("pdd_token"); refreshUser(); return; }
+    token = null; localStorage.removeItem("pdd_token"); refreshUser(); applyTheme(null); return; }
   $("authdlg").showModal();
 };
 $("closeDlg").onclick = () => $("authdlg").close();
@@ -37,11 +44,31 @@ async function doAuth(path) {
     token = r.body.token;
     localStorage.setItem("pdd_token", token);
     localStorage.setItem("pdd_name", r.body.profile.name);
-    $("authMsg").textContent = "ok"; $("authdlg").close(); refreshUser();
+    $("authMsg").textContent = "ok"; $("authdlg").close(); refreshUser(); loadTheme();
   } else $("authMsg").textContent = r.body?.error?.message || "failed";
 }
 $("doLogin").onclick = () => doAuth("/api/account/login");
 $("doSignup").onclick = () => doAuth("/api/account/signup");
+
+// ---------- theme (ui-presentation B-UI-005 / S-UI-004) ----------
+// Single charter-conformant dark theme ships this iteration (ambiguity-log Q2).
+// Theme values arrive only via user-config; unknown or absent values fall back
+// to the default dark theme. Applying a theme sets :root token values only —
+// never structure. Token names are sealed (S-UI-004); values match style.css.
+const THEMES = {
+  dark: { "--bg": "#323437", "--main": "#e2b714", "--caret": "#e2b714",
+          "--text": "#d1d0c5", "--sub": "#646669",
+          "--error": "#cf5763", "--error-extra": "#7e2a33" }, // == style.css :root
+};
+function applyTheme(name) {
+  const tokens = THEMES[name] || THEMES.dark; // conservative fallback (B-UI-005)
+  for (const [k, v] of Object.entries(tokens)) document.documentElement.style.setProperty(k, v);
+}
+async function loadTheme() {
+  if (!token) { applyTheme(null); return; }
+  const r = await api("/api/config");
+  applyTheme(r.status === 200 ? r.body?.theme : null);
+}
 
 // ---------- test setup ----------
 function currentMode2() {
@@ -64,11 +91,11 @@ async function newTest() {
     targetWords = generateWords(n, Math.floor(Math.random() * 1e9));
   }
   session = new TypingSession({ mode, mode2, words: targetWords });
-  activeWordIdx = 0;
   renderWords();
   $("result").hidden = true; $("board").hidden = true; $("test").hidden = false;
   timerEl.textContent = ""; wpmEl.textContent = "0"; accEl.textContent = "100";
   wordsEl.focus();
+  updateCaret(); // after unhide: rects are measurable only when the view is visible
 }
 
 function renderWords() {
@@ -90,11 +117,43 @@ function renderWords() {
     }
     wordsEl.appendChild(w);
   }
+  wordsEl.appendChild(caretEl); // absolute-positioned; outside the flex word flow
+}
+
+// B-UI-001: caret bounding rect tracks (wordIndex, n) — horizontally the right
+// edge of letter n-1 of the active word (left edge of letter 0 when n == 0),
+// vertically the active word's line box. Rect math is container-relative, so it
+// stays correct under window scroll without further updates.
+function updateCaret() {
+  if (!session || $("test").hidden) return;
+  const cur = wordsEl.querySelector(`[data-wi="${session.wordIndex}"]`);
+  if (!cur) return;
+  const letters = cur.querySelectorAll(".c");
+  const n = (session.inputs[session.wordIndex] ?? "").length;
+  const box = wordsEl.getBoundingClientRect();
+  let ref;
+  if (n > 0 && letters[n - 1]) ref = { rect: letters[n - 1].getBoundingClientRect(), edge: "right" };
+  else if (letters[0]) ref = { rect: letters[0].getBoundingClientRect(), edge: "left" };
+  else ref = { rect: cur.getBoundingClientRect(), edge: "left" };
+  caretEl.style.left = (ref.edge === "right" ? ref.rect.right : ref.rect.left) - box.left + "px";
+  // Zen edge: a whitespace-target letter span collapses to a zero-size rect;
+  // fall back to the word's line box so the caret keeps a visible area (>= 4px^2).
+  let top = ref.rect.top, height = ref.rect.height;
+  if (height < 2) {
+    const wr = cur.getBoundingClientRect();
+    top = wr.top;
+    height = Math.max(wr.height, parseFloat(getComputedStyle(wordsEl).lineHeight) || 0);
+  }
+  caretEl.style.top = top - box.top + "px";
+  caretEl.style.height = height + "px";
 }
 function refreshActiveWord() {
-  const els = wordsEl.querySelectorAll(".word");
-  els.forEach((el) => el.classList.remove("active"));
   const cur = wordsEl.querySelector(`[data-wi="${session.wordIndex}"]`);
+  // B-UI-003: only the previously active word may be re-classed — a no-op
+  // classList.remove on every word still records an attribute mutation on each
+  // committed word, which would violate per-keystroke mutation confinement.
+  const prev = wordsEl.querySelector(".word.active");
+  if (prev && prev !== cur) prev.classList.remove("active");
   if (cur) {
     const wi = session.wordIndex, typed = session.inputs[wi] ?? "", target = targetWords[wi];
     cur.innerHTML = "";
@@ -110,6 +169,7 @@ function refreshActiveWord() {
     cur.classList.toggle("error", [...typed].some((ch, i) => ch !== target[i]));
     cur.scrollIntoView({ block: "center" });
   }
+  updateCaret();
 }
 
 // ---------- input ----------
@@ -122,8 +182,11 @@ wordsEl.addEventListener("keydown", (e) => {
   else if (e.key === " ") { e.preventDefault(); session.feed({ t, type: "space" }); }
   else if (e.key.length === 1 && !e.ctrlKey && !e.metaKey) session.feed({ t, type: "char", value: e.key });
   else return;
-  if (session.completed) { finish(false); return; }
+  // Refresh BEFORE the completion branch (B-UI-002): the completing keystroke is
+  // still a keystroke, so the final word's letter states must be faithful even as
+  // the view transitions to results (B-UI-004).
   refreshActiveWord(); liveStats();
+  if (session.completed) { finish(false); return; }
 });
 
 function liveStats() {
@@ -199,5 +262,7 @@ async function loadBoard(m2) {
 }
 
 ticker = setInterval(() => { if (session && !session.completed) liveStats(); }, 250);
+addEventListener("resize", updateCaret);
 refreshUser();
+loadTheme();
 newTest();

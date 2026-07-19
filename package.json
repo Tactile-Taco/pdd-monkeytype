@@ -9,9 +9,10 @@
     "validate:structural": "node harness/validate-structural.mjs",
     "validate:behavioral": "node harness/validate-behavioral.mjs",
     "validate:operational": "node harness/validate-operational.mjs",
+    "validate:ui": "node protocols/ui-presentation/validators/run.mjs",
     "evidence:build": "node harness/build-evidence.mjs",
     "evidence:verify": "node harness/verify-evidence.mjs",
-    "pdd:loop": "npm run validate:structural && npm run validate:behavioral && npm run validate:operational && npm run evidence:build && npm run evidence:verify",
+    "pdd:loop": "npm run validate:structural && npm run validate:behavioral && npm run validate:operational && npm run validate:ui -- --boot-candidate && npm run evidence:build && npm run evidence:verify",
     "test:mutation": "echo 'mutation sanity runs inside validate:behavioral (mutationSanity checks)'"
   },
   "dependencies": {

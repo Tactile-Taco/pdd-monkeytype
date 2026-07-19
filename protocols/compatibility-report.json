@@ -1,0 +1,13 @@
+{
+  "protocols": [
+    "leaderboards",
+    "quote-library",
+    "result-anticheat",
+    "test-results",
+    "typing-test-engine",
+    "user-account",
+    "user-config"
+  ],
+  "conflicts": [],
+  "sealable": true
+}

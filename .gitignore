@@ -1,5 +1,7 @@
 node_modules/
-harness/out/*.json
+harness/out/
 data/
 *.log
-evidence/
+/evidence/
+/worker/bundle.mjs
+/worker/out/

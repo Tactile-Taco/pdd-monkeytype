@@ -1,32 +1,53 @@
-:root { color-scheme: dark; }
+/* ui-presentation v1.0.0 — sealed token charter (S-UI-004).
+   Token NAMES are sealed; VALUES are delegated within the O-UI-001..O-UI-003 bands.
+   Default dark theme = reference palette, with one band-driven adjustment:
+   --error lifted #ca4754 -> #cf5763 (same hue 354/sat 0.55): the reference value
+   measures 2.70:1 on --bg, below the sealed 3.0 large-text floor (O-UI-001);
+   the floor is the adjudicated persistent intent, token values are delegated. */
+:root {
+  color-scheme: dark;
+  --bg: #323437;
+  --main: #e2b714;
+  --caret: #e2b714;
+  --text: #d1d0c5;
+  --sub: #646669;
+  --error: #cf5763;
+  --error-extra: #7e2a33;
+}
 * { box-sizing: border-box; }
 body { margin: 0; font-family: ui-monospace, "Cascadia Mono", Menlo, monospace;
-  background: #323437; color: #d1d0c5; min-height: 100vh; }
+  background: var(--bg); color: var(--text); min-height: 100vh; }
 header { display: flex; justify-content: space-between; align-items: center;
   padding: 1rem 2rem; }
-h1 { font-size: 1.2rem; color: #e2b714; margin: 0; }
+h1 { font-size: 1.2rem; color: var(--main); margin: 0; }
 nav { display: flex; gap: .5rem; align-items: center; }
-button, select { background: #2c2e31; color: #d1d0c5; border: none; border-radius: 4px;
+button, select { background: #2c2e31; color: var(--text); border: none; border-radius: 4px;
   padding: .4rem .8rem; font: inherit; cursor: pointer; }
-button:hover { color: #e2b714; }
+button:hover { color: var(--main); }
 main { max-width: 900px; margin: 4rem auto; padding: 0 1rem; }
-#stats { font-size: 1.1rem; color: #e2b714; margin-bottom: 1rem; min-height: 1.5em; }
+#stats { font-size: 1.1rem; color: var(--main); margin-bottom: 1rem; min-height: 1.5em; }
+/* Word stream: 1.6rem = 25.6px computed letters (>= 24px large-text floor, O-UI-001). */
 #words { font-size: 1.6rem; line-height: 2.4rem; outline: none; display: flex;
-  flex-wrap: wrap; gap: .6rem; cursor: text; }
+  flex-wrap: wrap; gap: .6rem; cursor: text; position: relative; }
 .word { border-bottom: 2px solid transparent; }
-.word.active { border-bottom-color: #e2b714; }
-.word.error { border-bottom-color: #ca4754; }
-.c { color: #646669; }
-.c.correct { color: #d1d0c5; }
-.c.incorrect { color: #ca4754; }
-.c.extra { color: #7e2a33; }
-#hint { color: #646669; font-size: .85rem; }
+.word.active { border-bottom-color: var(--main); }
+.word.error { border-bottom-color: var(--error); }
+/* Letter state classes (S-UI-002 sealed vocabulary); untyped has no state class. */
+.c { color: var(--sub); }
+.c.correct { color: var(--text); }
+.c.incorrect { color: var(--error); }
+.c.extra { color: var(--error-extra); }
+/* Caret (B-UI-001): positioned by JS at (wordIndex, n); shape/blink delegated —
+   shipped solid (no blink) so every visibility sample passes. */
+#caret { position: absolute; left: 0; top: 0; width: 3px; height: 2.4rem;
+  background: var(--caret); border-radius: 1.5px; pointer-events: none; z-index: 1; }
+#hint { color: var(--sub); font-size: .85rem; }
 #resultStats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem;
   font-size: 1.4rem; margin: 1rem 0; }
-#resultStats small { display: block; font-size: .8rem; color: #646669; }
+#resultStats small { display: block; font-size: .8rem; color: var(--sub); }
 table { width: 100%; border-collapse: collapse; }
 td, th { text-align: left; padding: .4rem .6rem; border-bottom: 1px solid #2c2e31; }
 dialog { background: #2c2e31; color: inherit; border: none; border-radius: 8px; padding: 1.5rem; }
-dialog input { display: block; margin: .5rem 0; padding: .5rem; background: #323437;
+dialog input { display: block; margin: .5rem 0; padding: .5rem; background: var(--bg);
   border: none; color: inherit; border-radius: 4px; }
-#saveStatus { color: #646669; margin: .5rem 0; }
+#saveStatus { color: var(--sub); margin: .5rem 0; }

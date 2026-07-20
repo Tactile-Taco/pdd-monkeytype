@@ -81,7 +81,8 @@ export function scanComputedStyles(sel) {
   const root = document.documentElement;
   const cs = getComputedStyle(root);
   const tokens = {};
-  for (const t of ["--bg", "--main", "--caret", "--text", "--sub", "--error", "--error-extra"])
+  // Sealed token set per S-UI-004 (ui-presentation v2.0.0: nine slots).
+  for (const t of ["--bg", "--main", "--caret", "--text", "--sub", "--error", "--error-extra", "--sub-alt", "--colorful-error"])
     tokens[t] = cs.getPropertyValue(t).trim();
   // raw (authored) token values from stylesheets, for theme.schema.json validation
   const rawTokens = {};

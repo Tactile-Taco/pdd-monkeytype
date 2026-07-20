@@ -92,11 +92,64 @@
     "colorfulError": {
       "type": "boolean"
     },
-    "customThemeId": {
-      "type": "string",
-      "maxLength": 100
-    },
     "randomTheme": {
+      "type": "boolean"
+    },
+    "customThemeBg": {
+      "type": "string",
+      "maxLength": 32
+    },
+    "customThemeMain": {
+      "type": "string",
+      "maxLength": 32
+    },
+    "customThemeCaret": {
+      "type": "string",
+      "maxLength": 32
+    },
+    "customThemeSub": {
+      "type": "string",
+      "maxLength": 32
+    },
+    "customThemeSubAlt": {
+      "type": "string",
+      "maxLength": 32
+    },
+    "customThemeText": {
+      "type": "string",
+      "maxLength": 32
+    },
+    "customThemeError": {
+      "type": "string",
+      "maxLength": 32
+    },
+    "customThemeErrorExtra": {
+      "type": "string",
+      "maxLength": 32
+    },
+    "customThemeColorfulError": {
+      "type": "string",
+      "maxLength": 32
+    },
+    "caretStyle": {
+      "enum": [
+        "off",
+        "line",
+        "block",
+        "outline",
+        "underline"
+      ]
+    },
+    "smoothCaret": {
+      "type": "boolean"
+    },
+    "liveWpm": {
+      "type": "boolean"
+    },
+    "liveAcc": {
+      "type": "boolean"
+    },
+    "liveBurst": {
       "type": "boolean"
     }
   },

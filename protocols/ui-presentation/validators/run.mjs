@@ -73,6 +73,7 @@ for (let i = 0; i < args.length; i++) {
   else if (a === "--shot-seed") opt.shotSeed = Number(next());
   else if (a === "--init-script") opt.initScript = readFileSync(next(), "utf8"); // candidate fixture/shim (testing aid)
   else if (a === "--origin-label") opt.originLabel = next();
+  else if (a === "--capture-note") opt.captureNote = next();
   else { console.error("unknown flag:", a); process.exit(2); }
 }
 if (!opt.origin && !opt.replica && !opt.bootCandidate) { console.error("need --origin URL, --boot-candidate, or --replica"); process.exit(2); }
@@ -87,7 +88,9 @@ const validatorSet = parseYamlSubset(readFileSync(join(here, "validator-set.yaml
 if (opt.runs == null) opt.runs = Number(process.env.UI_PBT_RUNS ?? plan.property_runs_default ?? 50);
 
 const shaFile = (p) => "sha256:" + createHash("sha256").update(readFileSync(p)).digest("hex");
-const SUITE_VERSION = "0.1.0";
+const SUITE_VERSION = "0.2.0";
+// sealed protocol version reported in evidence metadata (read, never hardcoded)
+const PROTO_VERSION = (readFileSync(join(bundleDir, "protocol.yaml"), "utf8").match(/^  version: (.+)$/m) ?? [null, "unknown"])[1].trim();
 const t0 = Date.now();
 const results = [];
 const push = (rs) => results.push(...rs);
@@ -166,7 +169,7 @@ try {
   push(await evaluateCaretTracking(ctx));
   push(evaluateDomStateFidelity(ctx));
   push(evaluateMutationConfinement(ctx));
-  push(evaluateKeystrokeContract(ctx));
+  push(await evaluateKeystrokeContract(ctx));
 
   // ---------- scenario-owning validators ----------
   push(await runResultsFidelity(ctx));
@@ -196,7 +199,7 @@ const verdict_reason = verdict === "admit"
 const out = {
   layer: "ui-presentation",
   suite: { id: "ui-presentation-validator-suite", version: SUITE_VERSION },
-  protocol_version: "1.0.0",
+  protocol_version: PROTO_VERSION,
   target_origin: opt.originLabel,
   smoke: opt.smoke,
   validation_results: results,
@@ -237,7 +240,7 @@ console.log(JSON.stringify({ verdict, verdict_reason, checks: results.length,
 if (opt.ledger && !opt.smoke) {
   const { appendBlock, hashTree } = await import("../../../harness/evidence.mjs");
   const block = appendBlock(join(bundleDir, "evidence", "runtime-ledger.jsonl"),
-    { name: "ui-presentation", version: "1.0.0", bundle_digest: hashTree(bundleDir) },
+    { name: "ui-presentation", version: PROTO_VERSION, bundle_digest: hashTree(bundleDir) },
     out.implementation_artifact_hash,
     { target: opt.originLabel, checks: results.length, must_failures: mustFails.map((f) => f.invariant_id),
       wall_clock_ms: out.wall_clock_ms, evidence_digest: "sha256:" + createHash("sha256").update(JSON.stringify(out)).digest("hex") },

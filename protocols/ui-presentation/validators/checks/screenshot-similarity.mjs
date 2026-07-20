@@ -72,8 +72,10 @@ export async function runScreenshotSimilarity(ctx) {
 
   if (options.baselineMode === "capture") {
     mkdirSync(baselineDir, { recursive: true });
+    const protoVersion = (readFileSync(join(baselineDir, "..", "..", "protocol.yaml"), "utf8")
+      .match(/^  version: (.+)$/m) ?? [null, "unknown"])[1].trim();
     const manifest = {
-      schema: 1, protocol: "ui-presentation@1.0.0", invariant: "O-UI-005",
+      schema: 1, protocol: `ui-presentation@${protoVersion}`, invariant: "O-UI-005",
       source_origin: options.originLabel,
       captured_by: "validator-harness at validator-authoring time",
       capture_note: options.captureNote ??

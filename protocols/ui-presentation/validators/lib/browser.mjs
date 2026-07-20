@@ -108,10 +108,26 @@ export class SessionPage {
   async close() { await this.context.close(); }
 }
 
+// Sign up a throwaway account against the target origin and return a bearer
+// token (cached on ctx for the run). Config-dependent client behavior (theme,
+// blind/tape, quick-restart, flip/colorful, fonts) is only applied when the
+// page carries a token (localStorage pdd_token), so v2 config scenarios need it.
+export async function ensureConfigToken(ctx) {
+  if (ctx.configToken) return ctx.configToken;
+  const res = await fetch(ctx.origin + "/api/account/signup", {
+    method: "POST", headers: { "content-type": "application/json" },
+    body: JSON.stringify({ name: "ui_v2_" + Math.random().toString(36).slice(2, 8), password: "password123" }),
+  });
+  const body = await res.json().catch(() => ({}));
+  if (res.status !== 200 || !body.token) throw new Error(`config-token signup failed: ${res.status}`);
+  ctx.configToken = body.token;
+  return ctx.configToken;
+}
+
 // Open an isolated, instrumented page on `origin`.
 export async function openSessionPage(browser, origin, {
   seed = 1, pinApis = true, rewriteEngine = true, selectors, pinnedConfig = null,
-  initScript = null,
+  initScript = null, sessionToken = null,
 } = {}) {
   const context = await browser.createBrowserContext();
   const page = await context.newPage();
@@ -181,6 +197,10 @@ export async function openSessionPage(browser, origin, {
   });
 
   await page.evaluateOnNewDocument(preloadSource(seed));
+  if (sessionToken) // authenticate BEFORE any candidate script runs (config fetch at boot)
+    await page.evaluateOnNewDocument((tok) => {
+      try { localStorage.setItem("pdd_token", tok); localStorage.setItem("pdd_name", "ui_v2"); } catch {}
+    }, sessionToken);
   if (initScript) await page.evaluateOnNewDocument(initScript); // candidate fixtures/shims (testing aid)
   await page.goto(origin + "/", { waitUntil: "networkidle0", timeout: 30000 });
   return new SessionPage(context, page, meta);

@@ -51,7 +51,7 @@ ui-presentation v2.0.0 consumers:
 - flipTestColors: boolean, default false. [feature-inventory]
 - colorfulError: boolean, default false. [feature-inventory]
 - customThemeId: string ≤100 chars, default "" (empty = none; refers to a
-  theme-catalog custom theme). [feature-catalog; theme-catalog authoring]
+  theme-catalog custom theme). [feature-inventory; theme-catalog authoring]
 - randomTheme: boolean, default false. [feature-inventory]
 
 ### Deliberately NOT in batch 1

@@ -1,0 +1,26 @@
+name: pdd-deploy
+on:
+  workflow_dispatch:
+    inputs:
+      script:
+        description: "Worker script name to deploy"
+        required: true
+        default: pdd-monkeytype-ui
+permissions:
+  contents: read
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: node worker/build.mjs
+      - name: deploy via Cloudflare API (docs/09 pattern)
+        env:
+          CF_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: bash worker/deploy-ci.sh "${{ inputs.script }}"

@@ -1,0 +1,43 @@
+name: pdd-validator-loop
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 3 * * *"
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: install headless chrome
+        run: |
+          npx --yes @puppeteer/browsers install chrome-headless-shell@stable --path /tmp/chrome
+          echo "CHROME_PATH=$(find /tmp/chrome -name chrome-headless-shell -type f | head -1)" >> $GITHUB_ENV
+      - name: validator loop (3-layer + ui-presentation)
+        run: |
+          npm run validate:structural
+          npm run validate:behavioral
+          npm run validate:operational
+          RUNS=50
+          if [ "${{ github.event_name }}" = "schedule" ]; then RUNS=200; fi
+          npm run validate:ui -- --boot-candidate --runs "$RUNS"
+          npm run evidence:build
+          npm run evidence:verify
+      - name: upload evidence artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pdd-evidence-${{ github.run_id }}
+          path: |
+            harness/out/
+            evidence/
+          if-no-files-found: ignore

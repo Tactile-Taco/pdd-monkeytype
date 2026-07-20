@@ -1,0 +1,39 @@
+invariants:
+  - id: B-THM-001
+    statement: >
+      The catalog list read returns every catalog theme's name; each listed
+      theme is then retrievable by name with a token set identical to its
+      catalog entry (list/get round-trip consistency).
+    severity: must
+    rationale: >
+      Protocol requirement. The two reads must agree or ui-presentation's
+      unknown-theme fallback (B-UI-005) would fire on listed themes.
+    property: "forall n in list().themes: get(n).name == n"
+    validation:
+      - contract-tests
+  - id: B-THM-002
+    statement: >
+      Reading an unknown theme name returns an ErrorEnvelope (not_found) and
+      never a substitute or default theme; the fallback decision belongs to
+      the consumer (ui-presentation B-UI-005).
+    severity: must
+    rationale: >
+      Fail-closed lookup: silent substitution would make theme selection
+      unverifiable end-to-end (config value -> rendered tokens).
+    property: "get(unknown) => error.code == 'not_found'"
+    validation:
+      - contract-tests
+  - id: B-THM-003
+    statement: >
+      Catalog reads are deterministic within a deploy: identical requests in
+      the same deployed version return byte-identical payloads. Contents MAY
+      differ across deploys (catalog growth is a data task).
+    severity: must
+    rationale: >
+      Determinism within a deploy keeps validators and the ui-presentation
+      screenshot baseline reproducible while leaving the catalog transient
+      across versions (round-1 precedent: catalog as protocol data rejected;
+      contents are delegated data).
+    property: "read(); read() => identical bytes"
+    validation:
+      - contract-tests

@@ -1,15 +1,15 @@
 protocol:
   name: user-config
-  version: 1.1.1
+  version: 1.2.0
   status: sealed
 purpose: >
   Per-user test configuration: authenticated read of the effective config
   (defaults merged) and partial updates validated against a closed schema.
-  v1.1.0 is an additive MINOR version event (brownfield roadmap batch 1):
-  the closed key set expands with the keys consumed by typing-test-engine
-  v2.0.0 (input-rule mode toggles, min-thresholds) and ui-presentation v2.0.0
-  (font, tape, quick-restart, color-mode toggles). No key renamed, removed,
-  or retyped; defaults-merge semantics give zero data migration.
+  Additive MINOR events per the brownfield roadmap: v1.1.x batch 1 (engine
+  v2 + ui-presentation v2 mode/font keys); v1.2.0 batch 2 (theme-catalog +
+  ui-presentation v2 consumers: custom theme slots incl. sub-alt per C2,
+  caret style/smoothness, live-stats display toggles). No key renamed,
+  removed, or retyped; defaults-merge semantics give zero data migration.
 boundary:
   in_scope:
     - GET effective config, PUT partial config update

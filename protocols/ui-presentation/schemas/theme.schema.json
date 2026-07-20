@@ -12,7 +12,7 @@
     },
     "tokens": {
       "type": "object",
-      "required": ["--bg", "--main", "--caret", "--text", "--sub", "--error", "--error-extra"],
+      "required": ["--bg", "--main", "--caret", "--text", "--sub", "--error", "--error-extra", "--sub-alt", "--colorful-error"],
       "properties": {
         "--bg": { "$ref": "#/$defs/colorToken" },
         "--main": { "$ref": "#/$defs/colorToken" },
@@ -20,7 +20,9 @@
         "--text": { "$ref": "#/$defs/colorToken" },
         "--sub": { "$ref": "#/$defs/colorToken" },
         "--error": { "$ref": "#/$defs/colorToken" },
-        "--error-extra": { "$ref": "#/$defs/colorToken" }
+        "--error-extra": { "$ref": "#/$defs/colorToken" },
+        "--sub-alt": { "$ref": "#/$defs/colorToken" },
+        "--colorful-error": { "$ref": "#/$defs/colorToken" }
       },
       "additionalProperties": { "$ref": "#/$defs/colorToken" }
     }

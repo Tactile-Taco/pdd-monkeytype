@@ -1,0 +1,39 @@
+invariants:
+  - id: S-THM-001
+    statement: >
+      Every theme in the catalog conforms to the theme charter schema
+      (../ui-presentation/schemas/theme.schema.json): a name and a token set
+      carrying every sealed-required slot with charter-pattern color values.
+    severity: must
+    rationale: >
+      The charter is the consumed handshake (fork rule: referenced, not
+      redefined). Catalog contents are transient data; the shape is the
+      contract. Starter set ~10 themes this iteration; full reference import
+      is a data task requiring no protocol change.
+    validation:
+      - schema-conformance
+      - contract-tests
+  - id: S-THM-002
+    statement: >
+      The sealed-required token slot list is nine slots: --bg, --main,
+      --caret, --sub, --sub-alt, --text, --error, --error-extra,
+      --colorful-error (the ui-presentation v1 set extended additively with
+      --sub-alt and --colorful-error). Sealed slots are never removed or
+      renamed; additional slots are permitted (additive growth per C2).
+    severity: must
+    rationale: >
+      C2 ruling (roadmap-orchestrator-r2) + round-4 ratification (BQ-THM-01):
+      nine slots as listed; if the reference's 9th slot differs at data
+      import, the DATA adjusts — the protocol slots stand. Renames/removals
+      would be behavior-changing and require a major event on BOTH this
+      bundle and ui-presentation.
+    validation:
+      - schema-conformance
+  - id: S-THM-003
+    statement: >
+      All failures return the ErrorEnvelope schema.
+    severity: must
+    rationale: >
+      Protocol requirement (shared envelope pattern across all bundles).
+    validation:
+      - contract-tests

@@ -9,10 +9,10 @@ validators:
     version: "0.1.0"
     layer: structural
   - id: keystroke-contract
-    version: "0.1.0"
+    version: "0.2.0"
     layer: structural
   - id: caret-tracking
-    version: "0.1.0"
+    version: "0.2.0"
     layer: behavioral
   - id: dom-state-fidelity
     version: "0.1.0"
@@ -24,10 +24,10 @@ validators:
     version: "0.1.0"
     layer: behavioral
   - id: computed-style-metrics
-    version: "0.1.0"
+    version: "0.2.0"
     layer: operational
   - id: screenshot-similarity
-    version: "0.1.0"
+    version: "0.1.1"
     layer: operational
   - id: request-audit
     version: "0.1.0"

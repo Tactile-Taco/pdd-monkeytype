@@ -4,9 +4,12 @@ invariants:
       GET returns the effective config: every schema key present, unset keys at documented defaults.
     severity: must
     rationale: >
-      Protocol requirement. Defaults for all 24 keys are documented in
+      Protocol requirement. Defaults for all 37 keys are documented in
       ambiguity-log.md. Because defaults merge at read time, configs stored
-      under v1.0.0 are valid v1.1.0 configs with zero data migration.
+      under any prior minor are valid v1.2.0 configs with zero data migration.
+      (customThemeId, removed in v1.2.0, was never consumed; a stored config
+      carrying it is rejected on next PUT per S-CFG-001 — acceptable per the
+      BQ-CFG-01 ruling since only the deployed line exists mid-iteration.)
     validation:
       - contract-tests
   - id: B-CFG-002

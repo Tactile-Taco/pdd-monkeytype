@@ -1,0 +1,38 @@
+protocol:
+  name: theme-catalog
+  version: 1.0.0
+  status: sealed
+purpose: >
+  Named-theme catalog: read-only delivery of named design-token themes as
+  data assets. Each theme conforms to the ui-presentation theme charter
+  (sealed token slot set, extended additively per C2 with --sub-alt). The
+  catalog ships a starter set (~10 themes) this iteration; importing the
+  full reference catalog (~150) is a DATA task, not a protocol change —
+  catalog contents are transient, the handshake shape is the contract.
+boundary:
+  in_scope:
+    - Catalog read (list all theme names, read one theme by name)
+    - Theme conformance to the charter schema and the charter bands
+      (validated statically, no browser)
+    - Unknown-name failure semantics (error envelope, never substitution)
+  out_of_scope:
+    - Custom theme storage (carried as slots in user-config)
+    - Theme application, preview, and rendering (ui-presentation)
+    - Catalog content completeness/curation (delegated data task)
+    - Share-as-URL/JSON affordances (client chrome, delegated)
+depends_on: [ui-presentation]
+provides:
+  theme-catalog: schemas/theme-catalog.schema.json
+consumes:
+  theme-charter: ui-presentation
+handshakes:
+  theme: ../ui-presentation/schemas/theme.schema.json
+  catalog: schemas/theme-catalog.schema.json
+  error: schemas/error.schema.json
+invariants:
+  structural: invariants/structural.yaml
+  behavioral: invariants/behavioral.yaml
+  operational: invariants/operational.yaml
+capabilities: capability-manifest.yaml
+validators: validators/validation-plan.yaml
+evidence: evidence-requirements.yaml

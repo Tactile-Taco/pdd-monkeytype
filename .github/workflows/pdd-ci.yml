@@ -57,11 +57,9 @@ jobs:
           import json
           d = json.load(open('harness/out/ui-presentation.json'))
           print(json.dumps(d, indent=1)[:500])
-          checks = d.get('checks') or d.get('matrix') or []
-          for c in checks:
-              s = json.dumps(c)
-              if 'O-UI-005' in s:
-                  print(json.dumps(c, indent=1)[:3500])
+          for c in d.get('validation_results', []):
+              if c.get('invariant_id') == 'O-UI-005':
+                  print(json.dumps(c, indent=1))
           PYEOF
       - name: upload evidence artifacts
         if: always()

@@ -4,7 +4,11 @@ invariants:
       Config objects conform to schemas/config.schema.json; unknown keys are rejected (additionalProperties false).
     severity: must
     rationale: >
-      Protocol requirement.
+      Protocol requirement. v1.1.0 (additive MINOR, brownfield batch 1):
+      schema expanded from 10 to 24 keys; statement unchanged. Consequence
+      recorded for substitutability: a v1.0.0 candidate fail-closes on
+      v1.1.0 keys, so candidates are re-admitted per minor event and the
+      deployed line upgrades atomically per pdd:loop.
     validation:
       - schema-conformance
       - contract-tests

@@ -45,6 +45,59 @@
     },
     "lazyMode": {
       "type": "boolean"
+    },
+    "confidenceMode": {
+      "type": "boolean"
+    },
+    "freedomMode": {
+      "type": "boolean"
+    },
+    "strictSpace": {
+      "type": "boolean"
+    },
+    "oppositeShift": {
+      "type": "boolean"
+    },
+    "minWpm": {
+      "type": "number",
+      "minimum": 0
+    },
+    "minAcc": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "fontFamily": {
+      "type": "string",
+      "maxLength": 100
+    },
+    "fontSize": {
+      "type": "number",
+      "minimum": 0
+    },
+    "tapeMode": {
+      "type": "boolean"
+    },
+    "quickRestart": {
+      "enum": [
+        "off",
+        "tab",
+        "esc",
+        "enter"
+      ]
+    },
+    "flipTestColors": {
+      "type": "boolean"
+    },
+    "colorfulError": {
+      "type": "boolean"
+    },
+    "customThemeId": {
+      "type": "string",
+      "maxLength": 100
+    },
+    "randomTheme": {
+      "type": "boolean"
     }
   },
   "additionalProperties": false,

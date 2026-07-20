@@ -1,1 +1,0 @@
-probe: confirming MCP push still works for non-workflow paths (workflow-scope diagnosis). Safe to delete.

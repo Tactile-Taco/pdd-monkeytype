@@ -187,6 +187,15 @@
     "stopOnLetter": {
       "type": "boolean"
     },
+    "minThresholdFailed": {
+      "type": "boolean"
+    },
+    "unit": {
+      "enum": [
+        "seconds",
+        "words"
+      ]
+    },
     "hash": {
       "type": "string",
       "maxLength": 100

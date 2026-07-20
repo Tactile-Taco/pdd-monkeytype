@@ -18,9 +18,23 @@ invariants:
       - contract-tests
   - id: S-ENG-003
     statement: >
-      Mode is one of time|words|quote|zen|custom; mode2 carries the mode parameter (seconds, word count, quote id, or custom marker) as a string.
+      Mode is one of time|words|quote|zen|custom; mode2 carries the mode parameter (seconds, word count, quote id, or custom target) as a string. For custom mode the target is a positive integer (seconds or word count per the session's configured custom unit).
     severity: must
     rationale: >
-      Protocol requirement.
+      Protocol requirement. v2.0.0: "custom marker" clarified to custom target
+      (custom mode = user-defined time-seconds or word-count target, otherwise
+      identical to time/words completion). Clarification, not a behavior change.
     validation:
       - schema-conformance
+  - id: S-ENG-004
+    statement: >
+      Word lists injected at session start conform to schemas/wordlist.schema.json; a non-conforming list is rejected before the first keystroke and never starts a session.
+    severity: must
+    rationale: >
+      v2.0.0 addition. Formalizes the pre-existing injection point (O-ENG-003:
+      pure computation over injected word lists) as the abstract wordlist
+      handshake. Internal lists remain the default provider; the wordlists
+      bundle (roadmap D3) plugs in as a provider with no engine re-versioning.
+    validation:
+      - schema-conformance
+      - contract-tests

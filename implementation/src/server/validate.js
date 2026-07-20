@@ -36,7 +36,10 @@ export function validateCompletedEvent(e) {
   return errs;
 }
 
+// user-config v1.1.0: closed key set expanded 10 -> 24 (brownfield batch 1).
+// Value domains mirror protocols/user-config/schemas/config.schema.json exactly.
 export const CONFIG_KEYS = {
+  // v1.0.0 keys (unchanged)
   mode: (v) => ["time", "words", "quote", "zen", "custom"].includes(v),
   mode2: (v) => typeof v === "string",
   language: (v) => typeof v === "string" && v.length > 0,
@@ -47,12 +50,37 @@ export const CONFIG_KEYS = {
   stopOnError: (v) => ["off", "letter", "word"].includes(v),
   theme: (v) => typeof v === "string",
   lazyMode: (v) => typeof v === "boolean",
+  // batch-1: typing-test-engine v2.0.0 consumers
+  confidenceMode: (v) => typeof v === "boolean",
+  freedomMode: (v) => typeof v === "boolean",
+  strictSpace: (v) => typeof v === "boolean",
+  oppositeShift: (v) => typeof v === "boolean",
+  minWpm: (v) => isNum(v) && v >= 0,
+  minAcc: (v) => inRange(v, 0, 100),
+  // batch-1: ui-presentation v2.0.0 consumers
+  fontFamily: (v) => typeof v === "string" && v.length <= 100,
+  fontSize: (v) => isNum(v) && v >= 0, // v1.1.1: minimum 0; 0 = unset/client default (BQ-IMPL-01 closed)
+  tapeMode: (v) => typeof v === "boolean",
+  quickRestart: (v) => ["off", "tab", "esc", "enter"].includes(v),
+  flipTestColors: (v) => typeof v === "boolean",
+  colorfulError: (v) => typeof v === "boolean",
+  customThemeId: (v) => typeof v === "string" && v.length <= 100,
+  randomTheme: (v) => typeof v === "boolean",
 };
 
+// Sealed defaults (ambiguity-log). Defaults-merge at read time => zero data
+// migration: configs stored under v1.0.0 are valid v1.1.x configs (B-CFG-001).
+// fontSize: 0 = unset/client default — representable since user-config v1.1.1
+// relaxed the schema to minimum 0 (BQ-IMPL-01 adjudicated, closed).
 export const CONFIG_DEFAULTS = {
   mode: "time", mode2: "30", language: "english", punctuation: false,
   numbers: false, difficulty: "normal", blindMode: false, stopOnError: "off",
   theme: "serika_dark", lazyMode: false,
+  confidenceMode: false, freedomMode: false, strictSpace: false,
+  oppositeShift: false, minWpm: 0, minAcc: 0,
+  fontFamily: "", fontSize: 0, tapeMode: false,
+  quickRestart: "tab", flipTestColors: false, colorfulError: false,
+  customThemeId: "", randomTheme: false,
 };
 
 // -> {ok, badKeys} wholesale validation (B-CFG-003)

@@ -1,20 +1,31 @@
 protocol:
   name: typing-test-engine
-  version: 1.1.0
+  version: 2.0.0
   status: sealed
 purpose: >
   Client-side typing test session: word stream generation, keystroke-level input
   processing, caret/word navigation, per-second stat sampling, and production of
   a completion event conforming to the CompletedEvent handshake. Modes: time,
-  words, quote, zen, custom.
+  words, quote, zen, custom. v2.0.0 is a MAJOR version event (brownfield
+  roadmap D1; adjudicated in research/brownfield/roadmap-orchestrator-r2.md):
+  config-driven input-rule mode matrix (stop-on-error, confidence, freedom,
+  strict-space, opposite-shift, blind), generation decoration (punctuation,
+  numbers, lazy equivalence, custom targets), min-threshold failure flagging,
+  and consumption of injected word lists via the abstract wordlist handshake
+  (internal lists remain the default provider; the wordlists bundle plugs in
+  with no engine re-versioning).
 boundary:
   in_scope:
-    - Session lifecycle (start, keystroke, backspace, word commit, restart, bail)
-    - Character accounting (correct, incorrect, extra, missed)
+    - Session lifecycle (start, keystroke, backspace, navigate, word commit, restart, bail)
+    - Character accounting (correct, incorrect, extra, missed) under all mode-matrix flags
     - Stat computation (wpm, rawWpm, acc, consistency family) and chart sampling
+    - Generation decoration (punctuation, numbers, lazy) over injected word lists
+    - Min-threshold failure flag on the completion event
     - Completion event production for test-results
   out_of_scope:
-    - Rendering/visual presentation, sound, theme application, persistence of results
+    - Rendering/visual presentation (incl. blind-mode error hiding, tape scroll),
+      sound, theme application, quick-restart key routing, persistence of results
+    - Wordlist provision/catalog (wordlists bundle consumes the handshake as provider)
 depends_on: [user-config, quote-library]
 provides:
   completed-event: schemas/completed-event.schema.json
@@ -24,6 +35,7 @@ consumes:
 handshakes:
   completed_event: schemas/completed-event.schema.json
   keystroke_event: schemas/keystroke-event.schema.json
+  wordlist: schemas/wordlist.schema.json
 invariants:
   structural: invariants/structural.yaml
   behavioral: invariants/behavioral.yaml

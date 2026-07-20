@@ -38,35 +38,127 @@ invariants:
       - property-check
   - id: B-ENG-005
     statement: >
-      Backspace deletes one character within the current word's input. With an empty
+      Default backspace rule (confidenceMode=false and freedomMode=false):
+      backspace deletes one character within the current word's input. With an empty
       current input, backspace retreats into the immediately previous committed word
       if and only if that word's committed input differs from its target (it contains
       an error); a fully correct committed word is sealed and cannot be re-entered.
       Backspace never alters a sealed word.
+      Mode gates (v2.0.0): when confidenceMode=true, backspace/delete events are
+      inert once a character is committed to input (ignored without corrupting
+      session state, per S-ENG-002). When freedomMode=true, the caret may be
+      placed at any position of any presented word via navigate events
+      (absolute wordIndex/charIndex target, shape approved round 3 BQ-ENG-02)
+      and previously-skipped positions are fillable; the sealed-word rule does
+      not apply to navigated positions [verify remaining freedom details at
+      implementation].
     severity: must
     rationale: >
       Reference semantics (before-delete gate in the reference input handler):
       retreat is allowed only into erroneous committed words; correct words are sealed.
       Replaces the v1.0.0 under-specified "current word" reading — see
-      docs/10-critical-ambiguity-CA-001.md.
-    property: "backspace at empty input retreats iff previous committed word has an error"
+      docs/10-critical-ambiguity-CA-001.md. v2.0.0 MAJOR event: the rule becomes
+      config-gated (confidence/freedom), the behavior-changing amendment this
+      major version carries (adjudicated C3, roadmap-orchestrator-r2).
+    property: "backspace at empty input retreats iff previous committed word has an error, unless confidenceMode (inert) or freedomMode (navigate-governed)"
     validation:
       - property-check
   - id: B-ENG-006
     statement: >
-      Determinism: the same word list, config, and keystroke event stream (with identical timestamps) produces an identical completion event.
+      Determinism: the same word list, config (including mode-matrix flags and decoration toggles), and keystroke event stream (with identical timestamps) produces an identical completion event.
     severity: must
     rationale: >
-      Protocol requirement.
+      Protocol requirement. v2.0.0: quantification domain extended over the
+      mode matrix and generation decoration; statement otherwise unchanged.
     property: "replay(k) == replay(k)"
     validation:
       - property-check
   - id: B-ENG-007
     statement: >
-      Time mode completes exactly when the timer expires; words mode completes when the final word is committed; zen mode never self-completes; a bailed-out session sets bailedOut=true and still emits a completion event.
+      Time mode completes exactly when the timer expires; words mode completes when the final word is committed; custom mode completes per its configured target (timer expiry for a seconds target, final word commit for a word-count target); the custom-mode unit (seconds|words) is an explicit test-start config parameter alongside the target, and the completion event ECHOES mode=custom, mode2=target, and unit, so completion consumers never need start-event lookup; zen mode never self-completes and ends only on a manual end command, emitting a completion event under mode=zen with bailedOut=true; a bailed-out session sets bailedOut=true and still emits a completion event. Min-threshold flagging (B-ENG-010) never alters completion semantics.
     severity: must
     rationale: >
-      Protocol requirement.
+      Protocol requirement. v2.0.0: custom completion rule added (annex:
+      user-defined time-seconds or word-count target, otherwise identical to
+      time/words); unit-in-start-config + event echo adjudicated round 3
+      (BQ-ENG-01) — the echo is deliberate consumer decoupling. Zen manual-end
+      records bailedOut=true (BQ-ENG-06 ruling); whether zen results persist
+      is a test-results 1.2.0 consumer decision [verify at that authoring].
     validation:
       - contract-tests
       - property-check
+  - id: B-ENG-008
+    statement: >
+      Input-rule mode matrix (composite; each clause holds for every generated
+      stream under the stated config):
+      (a) stopOnError=letter — while the last committed character of the current
+      input is incorrect, subsequent char/space events are inert until that
+      character is corrected; (b) stopOnError=word — a word-commit (space)
+      is refused while the current word's input contains any error: the caret
+      stays on the current word until it is completed correctly;
+      (c) strictSpace=true — a space event while the current word is incomplete
+      is inert (no skip-ahead to the next word) [verify exact reference
+      semantics at implementation]; (d) opposite-shift enforcement is
+      DELEGATED to the input layer (an input-filter preference; the engine
+      sees only admitted characters): a char event is admitted identically
+      whether or not it carries the optional shift field, which rides the
+      keystroke-event schema as evidence plumbing only; (e) blindMode=true —
+      character accounting is unchanged (errors are counted exactly as when
+      blindMode is off; hiding errors is presentation scope, ui-presentation);
+      (f) inert events never corrupt session state (S-ENG-002) and never
+      appear in character accounting; (g) confidenceMode=true with
+      stopOnError!=off is an invalid session configuration (correction would
+      be required yet forbidden) — the engine refuses to start the session.
+    severity: must
+    rationale: >
+      v2.0.0 addition (roadmap D1, orchestrator mode-semantics annex).
+      Composite shape approved in adjudication (one property covers the
+      matrix). Clause (d) delegated per round-3 ruling BQ-ENG-03 — recorded
+      as a delegated decision, not a sealed rule; the residual engine clause
+      is trivially satisfiable by construction. Clause (g) confirmed per
+      round-3 ruling BQ-ENG-04 (logically contradictory pairing; reference
+      forbids it [verify at implementation]).
+    property: "forall streams: inert-gating per clauses (a)-(c),(f); refuse-start on (g); accounting identical to matrix-off when flags off"
+    validation:
+      - property-check
+      - contract-tests
+  - id: B-ENG-009
+    statement: >
+      Generation decoration (composite; applied at word-stream generation,
+      keystroke semantics unchanged): (a) punctuation=true — generated words
+      may carry punctuation characters per language convention; punctuation
+      characters are ordinary target characters for typing and accounting;
+      (b) numbers=true — a fraction of generated words are replaced by
+      number tokens; digits are ordinary target characters; (c) lazyMode=true
+      — a target character carrying diacritics accepts the unaccented base
+      character as correct-equivalent, counted correct in accounting
+      [verify equivalence table scope at authoring]; (d) decoration is
+      deterministic given (word list, config, stream position) per B-ENG-006;
+      (e) decoration never produces empty target words.
+    severity: must
+    rationale: >
+      v2.0.0 addition (annex: punctuation/numbers are generation decoration).
+      Closes the pre-existing governance gap — the config keys were sealed in
+      user-config v1.0.0 but no engine invariant governed honoring them.
+      Injection fractions/table contents remain delegated data.
+    property: "decorate(words, cfg) deterministic; decorated targets non-empty; keystroke rules invariant under decoration"
+    validation:
+      - property-check
+  - id: B-ENG-010
+    statement: >
+      Min-threshold failure flag: when config minWpm > 0 or minAcc > 0 and the
+      completed session's wpm < minWpm or acc < minAcc, the completion event
+      sets minThresholdFailed=true; otherwise the field is false or absent.
+      Flagging never alters stat computation, completion, or accounting.
+    severity: must
+    rationale: >
+      v2.0.0 addition (C6 ruling: failed result is flagged, excluded from PBs
+      and leaderboards, still visible in history; distinct from the
+      result-anticheat envelope). Field name minThresholdFailed accepted per
+      round-3 ruling BQ-ENG-05. The exclusion itself is consumer-side —
+      test-results 1.2.0 consumes this field for PB/leaderboard exclusion;
+      this bundle governs flag production only.
+    property: "minThresholdFailed <=> (minWpm>0 && wpm<minWpm) || (minAcc>0 && acc<minAcc)"
+    validation:
+      - property-check
+      - contract-tests

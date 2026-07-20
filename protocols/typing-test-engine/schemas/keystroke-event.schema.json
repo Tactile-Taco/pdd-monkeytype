@@ -15,12 +15,28 @@
         "char",
         "backspace",
         "space",
-        "restart"
+        "restart",
+        "navigate"
       ]
     },
     "value": {
       "type": "string",
       "maxLength": 1
+    },
+    "wordIndex": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "charIndex": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "shift": {
+      "enum": [
+        "left",
+        "right",
+        "none"
+      ]
     }
   },
   "additionalProperties": false

@@ -28,16 +28,17 @@ jobs:
           # rejects (expected). Capture mode returns O-UI-005:pass unconditionally,
           # so the gate below is what actually proves the baseline landed.
           node protocols/ui-presentation/validators/run.mjs --replica --engine-semantics v1.0 --baseline-mode capture || true
-      - name: Gate — baseline recaptured on THIS runner (o-ui-005-ci-diagnosis §8)
-        run: python3 - <<'PYEOF'
+      - name: Gate — baseline recaptured on THIS runner (o-ui-005-ci-diagnosis)
+        run: |
+          python3 - <<'PYEOF'
           import json, datetime
           m = json.load(open('protocols/ui-presentation/evidence/baseline/manifest.json'))
           t = datetime.datetime.fromisoformat(m['captured_at'].replace('Z', '+00:00'))
           age = (datetime.datetime.now(datetime.timezone.utc) - t).total_seconds()
-          assert age < 900, f'stale baseline ({age:.0f}s) — capture step did not land'
+          assert age < 900, f'stale baseline ({age:.0f}s) - capture step did not land'
           assert 'HeadlessChrome/15' in m.get('chromium_version', ''), m.get('chromium_version')
           print('baseline fresh:', m['captured_at'], m.get('host_image_id','')[:27])
-        PYEOF
+          PYEOF
       - name: validator loop (3-layer + ui-presentation)
         run: |
           npm run validate:structural

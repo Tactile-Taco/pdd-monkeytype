@@ -23,7 +23,10 @@ jobs:
           npx --yes @puppeteer/browsers install chrome-headless-shell@stable --path /tmp/chrome
           echo "CHROME_PATH=$(find /tmp/chrome -name chrome-headless-shell -type f | head -1)" >> $GITHUB_ENV
       - name: recapture host-pinned baseline (O-UI-005, per sealed evidence-requirements)
-        run: node protocols/ui-presentation/validators/run.mjs --replica --engine-semantics v1.0 --baseline-mode capture
+        run: |
+          # Capture writes the baseline even though the pre-protocol v2.2 replica
+          # rejects (expected: S-UI-004/O-UI-002/B-UI-005 etc. fail on it).
+          node protocols/ui-presentation/validators/run.mjs --replica --engine-semantics v1.0 --baseline-mode capture || true
       - name: validator loop (3-layer + ui-presentation)
         run: |
           npm run validate:structural

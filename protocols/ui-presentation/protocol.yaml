@@ -1,26 +1,36 @@
 protocol:
   name: ui-presentation
-  version: 1.0.0
+  version: 2.0.0
   status: sealed
 purpose: >
-  Browser presentation layer for the typing test: monospace word-stream
-  rendering with per-letter state, active-word and caret tracking of engine
-  session state, a design-token theme charter (named CSS custom properties
-  with tolerance bands, not exact values), and a results view that mirrors
-  the CompletedEvent payload. Presentation only — no game logic, no network
-  protocol semantics.
+  Browser presentation layer for the typing test: word-stream rendering with
+  per-letter state, active-word and caret tracking of engine session state, a
+  design-token theme charter (named CSS custom properties with tolerance
+  bands, not exact values), and a results view that mirrors the
+  CompletedEvent payload. v2.0.0 is a MAJOR version event (brownfield roadmap
+  D4b; C1 ruling): font family becomes configurable with a monospace DEFAULT
+  (O-UI-004 amended — the behavior-breaking amendment this major carries);
+  the token slot list grows additively per C2 (--sub-alt); theme resolution
+  consumes the theme-catalog handshake and user-config custom slots;
+  blind-mode display semantics, tape-mode anchored scroll, quick-restart
+  routing, and flip/colorful color modes are sealed. Presentation only —
+  no game logic, no network protocol semantics.
 boundary:
   in_scope:
     - Word-stream DOM structure (container, word elements, letter elements, reading order)
-    - Per-letter state distinguishability (correct / incorrect / extra / untyped)
+    - Per-letter state distinguishability (correct / incorrect / extra / untyped), incl. its blind-mode gate
     - Active-word marking and caret element tracking of engine caret state
-    - Design-token charter (required tokens on :root, contrast and hue/luminance bands)
+    - Design-token charter (required tokens on :root, contrast and hue/luminance bands; additive slots)
+    - Theme resolution (custom slots > catalog theme > default fallback) and application
+    - Blind-mode error hiding, tape-mode scroll, quick-restart key effect, flip/colorful color modes
     - Results view rendering of the CompletedEvent payload (wpm, acc)
     - DOM stability of committed words during an active session
   out_of_scope:
     - Engine semantics, stat formulas, completion conditions (typing-test-engine)
     - Config persistence and delivery (user-config), auth, leaderboards, server-side routing
-    - Exact hex values, font stack choice, spacing scale, radii, caret shape/blink, animation timing (delegated cosmetics)
+    - Theme catalog contents and delivery (theme-catalog), custom theme storage (user-config slots)
+    - Live-stats region rendering (delegated; toggles persist in user-config)
+    - Exact hex values, font stack choice, font sizes, spacing scale, radii, caret shape/blink, animation timing (delegated cosmetics)
 depends_on: [typing-test-engine, user-config]
 provides:
   theme-charter: schemas/theme.schema.json

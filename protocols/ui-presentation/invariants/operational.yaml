@@ -19,10 +19,14 @@ invariants:
   - id: O-UI-002
     statement: >
       Token bands, computed per token from computed style: (i) dark family —
-      relative luminance(--bg) <= 0.2 and luminance(--text) > luminance(--bg);
-      (ii) error hue — --error and --error-extra convert (rgb -> HSL) to
-      h in [0,15] union [340,360] with s >= 0.45. Holds for every shipped
-      theme's token set (each validated against schemas/theme.schema.json first).
+      relative luminance(--bg) <= 0.2 and luminance(--text) > luminance(--bg),
+      required when flipTestColors=false (a flipped stream inverts the
+      luminance relationship by design; contrast invariants O-UI-001 still
+      hold post-swap by WCAG symmetry); (ii) error hue — --error and
+      --error-extra convert (rgb -> HSL) to h in [0,15] union [340,360] with
+      s >= 0.45, in both flip states and under colorfulError. Holds for every
+      shipped theme's token set (each validated against
+      schemas/theme.schema.json first).
     severity: must
     rationale: >
       Orchestrator intent 1d, MODIFIED and adjudicated round 2 (P3 accepted):
@@ -36,33 +40,49 @@ invariants:
       - computed-style-metrics
   - id: O-UI-003
     statement: >
-      Letter-state color distinction: the computed colors of the four letter
-      states {untyped, correct, incorrect, extra} are pairwise distinct with
-      max RGB channel delta >= 32 between every pair, on the same computed
-      background. (incorrect and extra must differ from correct AND from each
-      other; untyped must differ from all typed states.)
+      Letter-state color distinction: when blindMode=false, the computed
+      colors of the four letter states {untyped, correct, incorrect, extra}
+      are pairwise distinct with max RGB channel delta >= 32 between every
+      pair, on the same computed background. (incorrect and extra must differ
+      from correct AND from each other; untyped must differ from all typed
+      states.) When blindMode=true this distinction is intentionally
+      suspended for incorrect/extra per B-UI-007 (errors hidden).
     severity: must
     rationale: >
       Orchestrator intent 1c, STRENGTHENED: 'differ from correct' is necessary
       but insufficient — incorrect vs extra and untyped vs typed must also be
       separable or the reader cannot decode history. 32/255 channel delta is
       the explicit perceptual floor; the reference palette's minimum pair
-      (extra vs untyped) measures 60.
-    property: "for all state pairs: maxChannelDelta(colorA, colorB) >= 32"
+      (extra vs untyped) measures 60. v2.0.0: gated on blindMode=false —
+      blind mode's entire purpose is suppressing the distinction (annex;
+      accounting stays engine-side, B-ENG-008(e)).
+    property: "blindMode=false => for all state pairs: maxChannelDelta(colorA, colorB) >= 32"
     validation:
       - computed-style-metrics
   - id: O-UI-004
     statement: >
-      Monospace rendering: in the word stream's computed font, the rendered
-      advance widths of the narrowest and widest lowercase glyphs ('i' and 'm',
-      canvas-measured with the computed font shorthand) are equal within 1px,
-      and every letter element's computed font-family resolves through a
-      monospace generic fallback.
+      Font family is configurable via user-config fontFamily; the DEFAULT
+      (fontFamily unset/empty) is monospace: in the word stream's computed
+      default font, the rendered advance widths of the narrowest and widest
+      lowercase glyphs ('i' and 'm', canvas-measured with the computed font
+      shorthand) are equal within 1px. When a non-default fontFamily is
+      configured, advance-width equality is NOT required; instead, the
+      per-state distinguishability of O-UI-003 and the caret legibility of
+      O-UI-001 (caret contrast >= 3.0) hold regardless of the chosen font.
     severity: must
     rationale: >
-      Orchestrator intent 1a. Advance-width equality is the machine-checkable
-      essence of 'monospace'; it does not dictate the font stack (delegated).
-    property: "adv('i') == adv('m') +/- 1px under computed font"
+      v2.0.0 MAJOR amendment (C1 ruling, roadmap-orchestrator-r2; ambiguity-log
+      CA-UI-02): the reference offers proportional fonts, so sealed
+      mandatory-monospace contradicted parity — the second CA-001-class
+      instance (a sealed cosmetic assumption turns behavior-visible once
+      configurability exists). Minimal amendment per the author's LOW-cost
+      assessment: B-UI-001 caret tracking (±2px), B-UI-002 state fidelity, and
+      B-UI-003 mutation confinement already carry the interaction contract;
+      advance-equality survives for the default font where it guards
+      screenshot reproducibility (O-UI-005). Font sources stay same-origin
+      per O-UI-006; font SIZE values remain delegated (config fontSize, 0 =
+      client default).
+    property: "fontFamily unset => adv('i') == adv('m') +/- 1px; fontFamily set => O-UI-003 and caret contrast hold"
     validation:
       - computed-style-metrics
   - id: O-UI-005
@@ -78,14 +98,21 @@ invariants:
       ~0.01% pixel footprint is absorbed by the 0.85 threshold). Baseline and
       candidate captures must run on the same validator host image (system font
       rasterization is host-dependent); cross-host comparison is not admitted.
-      Re-baselining after the caret lands is a minor version event.
+      Re-baseline: folded into THIS v2.0.0 event window — the v2.2 pre-caret
+      baseline is retired and the baseline is re-captured by the validator
+      harness from the first admitted v2.0.0 candidate origin (default theme,
+      default monospace font), same host-pinning and capture-metadata rules
+      (SHA-256, host image id, Chromium version per capture).
     severity: must
     rationale: >
       Orchestrator constraint: coherence guard. Exactly one screenshot invariant
       (within the 1-2 budget); two scenes inside it bound cost. Tolerance band
       and sampling stated explicitly per friction discipline. Baseline identity
       adjudicated round 2 (Q1): v2.2 pre-caret origin, harness-captured,
-      host-pinned; re-baseline post-caret via minor version event.
+      host-pinned. v2.0.0: the configurable-font/theme surface makes the v2.2
+      baseline stale by definition; re-baselining rides this major event
+      instead of a separate minor (adjudicated fold, C2 note in
+      roadmap-orchestrator-r2).
     validation:
       - screenshot-similarity
   - id: O-UI-006

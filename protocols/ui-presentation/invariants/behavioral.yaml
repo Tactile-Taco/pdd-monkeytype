@@ -67,20 +67,27 @@ invariants:
       - results-fidelity
   - id: B-UI-005
     statement: >
-      The active theme is applied by setting the sealed tokens on :root; a theme
-      value from user-config selects a token set, and an unknown or absent theme
-      value falls back to the default dark theme (which satisfies the charter
-      bands). Applying a theme changes token values only, never structure.
-    severity: should
+      The active theme is applied by setting the sealed tokens on :root, with
+      resolution precedence: (1) user-config custom theme slots, when ALL nine
+      slot keys are non-empty AND every value conforms to the charter color
+      pattern — the slots form the active token set; (2) otherwise the catalog
+      theme named by user-config theme (read from the theme-catalog
+      handshake); (3) otherwise (unknown, absent, or unreadable value) the
+      default dark theme, which satisfies the charter bands. Applying a theme
+      changes token values only, never structure.
+    severity: must
     rationale: >
-      Orchestrator intent 1d partial: consumption of user-config.theme.
-      Adjudicated round 2 (Q2): stays should — the multi-theme catalog is
-      transient, theme arrives as a config value only (no theme endpoint), and
-      a single charter-conformant theme ships this iteration for friction
-      minimization. Upgrade path if multi-theme becomes persistent: minor
-      version event promoting this to must plus a catalog handshake.
+      v2.0.0: promoted should -> must via the upgrade path pre-noted in the
+      v1.0.0 rationale (multi-theme became persistent: theme-catalog bundle
+      provides the named catalog; user-config v1.2.0 carries custom slots).
+      Precedence sealed per orchestrator instruction (custom slots incl.
+      --sub-alt per C2); the all-nine-slots gate keeps partial/malformed
+      custom themes fail-closed onto the catalog/default path [verify
+      reference editor behavior at implementation].
+    property: "resolvedTokens == customSlots if allValid(slots) else catalog(theme) else default"
     validation:
       - computed-style-metrics
+      - contract-tests
   - id: B-UI-006
     statement: >
       During an active session the active word remains within the visible
@@ -93,3 +100,89 @@ invariants:
       Should-level because 'visible region' tolerances are layout-sensitive.
     validation:
       - dom-structure
+  - id: B-UI-007
+    statement: >
+      Blind-mode display: when blindMode=true, letters in the incorrect and
+      extra states render with computed colors identical to the correct state
+      (all RGB channels equal), while untyped is unaffected; the letter-state
+      CLASSES of S-UI-002 still carry the true engine state (hiding is
+      presentational only, accounting is engine-side per B-ENG-008(e)). The
+      color distinction floor of O-UI-003 is suspended for those states.
+    severity: must
+    rationale: >
+      v2.0.0 addition (annex: blind mode hides errors — incorrect letters
+      render visually identical to correct — while errors are still counted).
+      Sealing the identity (incorrect/extra == correct in computed color)
+      keeps blind mode machine-checkable without touching the engine or the
+      DOM class contract. [verify whether extra also hides, at implementation]
+    property: "blindMode=true => color(incorrect) == color(correct) && color(extra) == color(correct)"
+    validation:
+      - computed-style-metrics
+  - id: B-UI-008
+    statement: >
+      Tape mode: when tapeMode=true, the word stream lays out on a single
+      horizontal line and scrolls horizontally with an anchored caret — the
+      caret's horizontal position within the stream viewport stays fixed
+      (±2px across keystrokes) while the stream translates so the active
+      position remains at the anchor. Reading order (S-UI-001), caret
+      tracking (B-UI-001), and mutation confinement to the active word +
+      stream translation (B-UI-003) still hold.
+    severity: must
+    rationale: >
+      v2.0.0 addition (annex: tape = horizontal scroll, anchored caret).
+      The fixed-anchor formulation is the machine-checkable essence; scroll
+      easing/animation is delegated. [verify anchor position (left offset vs
+      center) at implementation — the invariant pins FIXITY, not location]
+    property: "tapeMode=true => |caret.viewportX(keystroke_n+1) - caret.viewportX(keystroke_n)| <= 2px"
+    validation:
+      - caret-tracking
+  - id: B-UI-009
+    statement: >
+      Quick-restart: when user-config quickRestart != off, pressing the
+      configured key dispatches an engine restart keystroke-event (per the
+      keystroke handshake) and produces no character input; when off, no such
+      key binding exists. Other handling of the key is delegated.
+    severity: must
+    rationale: >
+      v2.0.0 addition (annex: Tab restarts; enum + default carried in
+      user-config v1.1.0). Sealed at the dispatched-effect level so key
+      ROUTING details (focus rules, preventDefault) stay client-side.
+      [verify against reference routing at implementation]
+    property: "quickRestart=k != off => keypress(k) => restart event && no char event"
+    validation:
+      - keystroke-contract
+  - id: B-UI-010
+    statement: >
+      Color modes (composite): (a) flipTestColors=true — the word stream
+      renders with the text-role and bg-role tokens swapped: letter colors
+      derive from --bg, the stream-area background from --text; contrast
+      floors O-UI-001 still hold (WCAG symmetry) and the dark-family band
+      O-UI-002(i) is gated off per its statement; (b) colorfulError=true —
+      incorrect and extra states render in high-saturation variants of the
+      error hues (source: the --colorful-error token, ratified as the ninth
+      sealed slot round 4; for token sets predating ratification, a
+      saturation-raised derivation of --error); the error
+      hue band O-UI-002(ii) still applies. Neither mode changes structure,
+      classes, or accounting.
+    severity: must
+    rationale: >
+      v2.0.0 addition (feature-inventory; composite shape per marginal-must
+      discipline). Token-role swap is the checkable essence of "flip test
+      colors"; saturation-variant is the checkable essence of "colorful
+      error". [verify reference derivation rules at implementation]
+    property: "flip => colorRole(text)<->colorRole(bg); colorfulError => s(errorStates) > s(--error) within hue band"
+    validation:
+      - computed-style-metrics
+  - id: B-UI-011
+    statement: >
+      Random theme: when randomTheme=true, a catalog theme is selected at each
+      test start and applied atomically (sealed tokens set on :root before the
+      first keystroke of the session); the selection algorithm is delegated.
+    severity: should
+    rationale: >
+      v2.0.0 addition (feature-inventory). Should-level: the selection is
+      intentionally non-deterministic, so only atomicity and charter
+      conformance of the applied result are worth governing — the rest would
+      buy validator cost, not contract value.
+    validation:
+      - computed-style-metrics

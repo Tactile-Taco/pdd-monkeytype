@@ -42,14 +42,18 @@ invariants:
   - id: S-UI-004
     statement: >
       The stylesheet defines the sealed token set on :root as CSS custom
-      properties: --bg, --main, --caret, --text, --sub, --error, --error-extra.
-      Each resolves via computed style to a parseable color. Token VALUES are
-      delegated within the bands of O-UI-001..O-UI-003; token NAMES are sealed.
+      properties: --bg, --main, --caret, --text, --sub, --error, --error-extra,
+      --sub-alt, --colorful-error. Each resolves via computed style to a
+      parseable color. Token VALUES are delegated within the bands of
+      O-UI-001..O-UI-003; token NAMES are sealed and grow additively only.
     severity: must
     rationale: >
       Orchestrator intent 1d (theme charter): named tokens with tolerance bands,
       not exact values. --error-extra added by the author (needed to render the
-      extra letter state distinctly per S-UI-002).
+      extra letter state distinctly per S-UI-002). v2.0.0: --sub-alt and
+      --colorful-error added per C2 ruling and round-4 ratification (nine
+      slots; if the reference's 9th differs at data import, data adjusts —
+      protocol slots stand).
     validation:
       - computed-style-metrics
   - id: S-UI-005

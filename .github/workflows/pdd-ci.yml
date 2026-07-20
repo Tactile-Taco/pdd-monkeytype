@@ -22,6 +22,8 @@ jobs:
         run: |
           npx --yes @puppeteer/browsers install chrome-headless-shell@stable --path /tmp/chrome
           echo "CHROME_PATH=$(find /tmp/chrome -name chrome-headless-shell -type f | head -1)" >> $GITHUB_ENV
+      - name: install pngdiff deps (O-UI-005 Pillow/numpy)
+        run: python3 -m pip install --quiet pillow numpy || python3 -m pip install --quiet --break-system-packages pillow numpy
       - name: recapture host-pinned baseline (O-UI-005, per sealed evidence-requirements)
         run: |
           # Capture writes the baseline even though the pre-protocol v2.2 replica

@@ -67,6 +67,11 @@ evidence-requirements, O-ENG-001..004.
 | 1 | user-config | 1.0.0 → 1.1.0 minor (additive) | brownfield batch 1 |
 | 2 | typing-test-engine | 1.1.0 → 2.0.0 major (B-ENG-005 config-gated) | roadmap D1, C3 |
 | 3 | user-config | 1.1.0 → 1.1.1 patch (pure domain relaxation) | BQ-IMPL-01: fontSize default 0 unrepresentable under exclusiveMinimum; schema relaxed to minimum:0, 0 = unset → client default. Author drafting defect (PSN-UI-01 class: unverified admission claim), orchestrator-ruled, re-sealed same day, check_bundle PASS |
+| 4 | user-config | 1.1.1 → 1.2.0 minor (batch 2: +14 keys, customThemeId removed pre-consumer) | roadmap batch 2 + round-4 BQ-CFG-01 |
+| 5 | theme-catalog | 0.1.0 draft → 1.0.0 seal (NEW bundle) | roadmap D4a; round-4 BQ-THM-01/02 |
+| 6 | ui-presentation | 1.0.0 → 2.0.0 major (O-UI-004 font configurability, CA-UI-02) | roadmap D4b, C1; round-4 BQ-UI-01/02 |
+
+Validator patches (not protocol events): ui-presentation computed-style-metrics 0.1.0 → 0.1.1 (2026-07-20, BQ-UI-IMPL-01): token readers extended 7 → sealed 9 riding the sealed v2.0.0 event; suite verified green 19/19 against the booted candidate (harness/out/ui-presentation-verify-0.1.1.json). |
 
 Blocking questions this round: 6, all adjudicated in one round. Critical
 ambiguities found during drafting: 0 new (all mode semantics arrived with

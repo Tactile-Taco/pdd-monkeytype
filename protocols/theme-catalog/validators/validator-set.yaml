@@ -1,0 +1,22 @@
+validators:
+  - id: bundle-lint
+    version: "1.0.0"
+    layer: structural
+  - id: schema-conformance
+    version: "1.0.0"
+    layer: structural
+  - id: contract-tests
+    version: "1.0.0"
+    layer: structural
+  - id: property-check
+    version: "1.0.0"
+    layer: behavioral
+  - id: egress-monitor
+    version: "1.0.0"
+    layer: operational
+  - id: resource-budget
+    version: "1.0.0"
+    layer: operational
+  - id: dependency-scan
+    version: "1.0.0"
+    layer: operational

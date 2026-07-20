@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Theme catalog — list read shape",
+  "description": "Shape of the catalog list read. Full token sets are delivered per-theme via the theme handshake (../ui-presentation/schemas/theme.schema.json).",
+  "type": "object",
+  "required": [
+    "themes"
+  ],
+  "properties": {
+    "themes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": false
+}

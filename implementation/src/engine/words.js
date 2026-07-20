@@ -33,3 +33,36 @@ export function generateWords(count, seed = 1, list = ENGLISH_200) {
   for (let i = 0; i < count; i++) out.push(list[Math.floor(rnd() * list.length)]);
   return out;
 }
+
+// ---- generation decoration (B-ENG-009) ----
+// Applied at word-stream generation; keystroke semantics unchanged — decorated
+// characters are ordinary target characters for typing and accounting.
+// Deterministic given (word list, config, stream position) via the injected rng
+// (clause d); never produces empty target words (clause e).
+// Injection fractions/table contents are delegated data (invariant rationale);
+// the tables below are the settled local choices (english conventions):
+//   numbers: 15% of words replaced by a 1–4 digit number token; number tokens
+//            are not further punctuated.
+//   punctuation: 8% sentence-start capitalization; 10% terminal mark from
+//            . , ! ? ; :
+const NUMBER_FRACTION = 0.15;
+const CAPITALIZE_FRACTION = 0.08;
+const TERMINAL_FRACTION = 0.10;
+const TERMINAL_MARKS = [".", ",", ".", "!", "?", ";", ":"]; // '.' twice: period-weighted
+
+export function decorateWords(words, rnd, { punctuation = false, numbers = false } = {}) {
+  if (!punctuation && !numbers) return words; // identity — v1.1.0 stream unchanged
+  return words.map((w) => {
+    let out = w;
+    if (numbers && rnd() < NUMBER_FRACTION) {
+      const len = 1 + Math.floor(rnd() * 4);
+      out = String(Math.floor(rnd() * 10 ** len)); // 1..len digits, never empty
+      return out; // number tokens are not further punctuated (delegated choice)
+    }
+    if (punctuation) {
+      if (rnd() < CAPITALIZE_FRACTION) out = out[0].toUpperCase() + out.slice(1);
+      if (rnd() < TERMINAL_FRACTION) out = out + TERMINAL_MARKS[Math.floor(rnd() * TERMINAL_MARKS.length)];
+    }
+    return out.length > 0 ? out : w; // clause (e): never empty (defensive)
+  });
+}

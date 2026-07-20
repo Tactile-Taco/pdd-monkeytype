@@ -26,6 +26,22 @@ export async function bootApp({ ledgerDir = null, heartbeatMs } = {}) {
   return { base, call, signup, close: () => server.close(), dataDir, app };
 }
 
+// Harness-side oracle of the SEALED user-config v1.1.1 defaults (24 keys),
+// transcribed from protocols/user-config/ambiguity-log.md (v1.0.0 defaults +
+// batch-1 keys; fontSize: 0 = unset/client default per the v1.1.1 PATCH,
+// BQ-IMPL-01). Validators compare the candidate's effective config against
+// this table — deliberately independent of implementation/src/server/validate.js.
+export const SEALED_CONFIG_DEFAULTS = {
+  mode: "time", mode2: "30", language: "english", punctuation: false,
+  numbers: false, difficulty: "normal", blindMode: false, stopOnError: "off",
+  theme: "serika_dark", lazyMode: false,
+  confidenceMode: false, freedomMode: false, strictSpace: false,
+  oppositeShift: false, minWpm: 0, minAcc: 0,
+  fontFamily: "", fontSize: 0, tapeMode: false,
+  quickRestart: "tab", flipTestColors: false, colorfulError: false,
+  customThemeId: "", randomTheme: false,
+}; // 24 keys
+
 // A deterministic, protocol-valid completion event generator for tests.
 export function makeEvent(over = {}) {
   const ev = {

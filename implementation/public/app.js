@@ -1,7 +1,7 @@
 // pdd-typing frontend — uses the SAME engine modules as the server (isomorphic).
 // The engine performs no I/O (O-ENG-001); this shell owns all network/DOM work.
 import { TypingSession } from "/engine/session.js";
-import { generateWords } from "/engine/words.js";
+import { internalWordlist } from "/engine/wordlist.js";
 import { round2, calculateWpm } from "/shared/stats.js";
 
 const $ = (id) => document.getElementById(id);
@@ -33,7 +33,7 @@ function refreshUser() {
 }
 $("authbtn").onclick = async () => {
   if (token) { await api("/api/account/logout", { method: "POST", body: "{}" });
-    token = null; localStorage.removeItem("pdd_token"); refreshUser(); applyTheme(null); return; }
+    token = null; localStorage.removeItem("pdd_token"); refreshUser(); applyConfig(null); return; }
   $("authdlg").showModal();
 };
 $("closeDlg").onclick = () => $("authdlg").close();
@@ -44,7 +44,7 @@ async function doAuth(path) {
     token = r.body.token;
     localStorage.setItem("pdd_token", token);
     localStorage.setItem("pdd_name", r.body.profile.name);
-    $("authMsg").textContent = "ok"; $("authdlg").close(); refreshUser(); loadTheme();
+    $("authMsg").textContent = "ok"; $("authdlg").close(); refreshUser(); loadConfig();
   } else $("authMsg").textContent = r.body?.error?.message || "failed";
 }
 $("doLogin").onclick = () => doAuth("/api/account/login");
@@ -64,10 +64,35 @@ function applyTheme(name) {
   const tokens = THEMES[name] || THEMES.dark; // conservative fallback (B-UI-005)
   for (const [k, v] of Object.entries(tokens)) document.documentElement.style.setProperty(k, v);
 }
-async function loadTheme() {
-  if (!token) { applyTheme(null); return; }
+
+// ---------- effective config (user-config v1.1.0, 24 keys) ----------
+// Local mirror of the sealed defaults so logged-out sessions and partial/pinned
+// config payloads behave identically to the server defaults-merge (B-CFG-001).
+// fontSize: 0 = unset/client default (user-config v1.1.1, BQ-IMPL-01 closed);
+// ui-presentation v2 owns clamping/applying it.
+const LOCAL_DEFAULTS = {
+  mode: "time", mode2: "30", language: "english", punctuation: false,
+  numbers: false, difficulty: "normal", blindMode: false, stopOnError: "off",
+  theme: "serika_dark", lazyMode: false,
+  confidenceMode: false, freedomMode: false, strictSpace: false,
+  oppositeShift: false, minWpm: 0, minAcc: 0,
+  fontFamily: "", fontSize: 0, tapeMode: false, quickRestart: "tab",
+  flipTestColors: false, colorfulError: false, customThemeId: "", randomTheme: false,
+};
+let cfg = { ...LOCAL_DEFAULTS };
+function applyConfig(next) {
+  cfg = { ...LOCAL_DEFAULTS, ...(next ?? {}) };
+  applyTheme(cfg.theme);
+  // Display hooks STUBBED for ui-presentation v2 (it owns blind-mode error
+  // hiding and tape scroll): we only bind the state classes on the stream
+  // container here; no visual behavior change in this iteration.
+  wordsEl.classList.toggle("blind", !!cfg.blindMode);
+  wordsEl.classList.toggle("tape", !!cfg.tapeMode);
+}
+async function loadConfig() {
+  if (!token) { applyConfig(null); return; }
   const r = await api("/api/config");
-  applyTheme(r.status === 200 ? r.body?.theme : null);
+  applyConfig(r.status === 200 ? r.body : null);
 }
 
 // ---------- test setup ----------
@@ -75,7 +100,13 @@ function currentMode2() {
   const m = $("mode").value;
   if (m === "time") return $("mode2").value;
   if (m === "words") return { "15": "10", "30": "25", "60": "50" }[$("mode2").value];
-  return $("mode2").value;
+  return $("mode2").value; // quote/zen/custom: raw select value (custom: the target)
+}
+// Custom-mode unit (seconds|words) is a test-start parameter (BQ-ENG-01), not a
+// persisted config key. Minimal wiring here: ?unit=words URL override, default
+// seconds. The unit picker UI is ui-presentation v2 scope.
+function customUnit() {
+  return new URLSearchParams(location.search).get("unit") === "words" ? "words" : "seconds";
 }
 async function newTest() {
   clearInterval(ticker);
@@ -87,10 +118,27 @@ async function newTest() {
   } else if (mode === "zen") {
     targetWords = [" ".repeat(1000)]; // freeform
   } else {
-    const n = mode === "words" ? Number(mode2) : 200;
-    targetWords = generateWords(n, Math.floor(Math.random() * 1e9));
+    // internal default wordlist provider (S-ENG-004) with generation decoration
+    // (B-ENG-009): punctuation/numbers from the effective config.
+    const unit = customUnit();
+    const n = mode === "words" || (mode === "custom" && unit === "words") ? Number(mode2) : 200;
+    targetWords = internalWordlist({ language: cfg.language, count: n,
+      seed: Math.floor(Math.random() * 1e9),
+      punctuation: !!cfg.punctuation, numbers: !!cfg.numbers }).words;
   }
-  session = new TypingSession({ mode, mode2, words: targetWords });
+  try {
+    session = new TypingSession({ mode, mode2, words: targetWords, config: {
+      language: cfg.language, punctuation: !!cfg.punctuation, numbers: !!cfg.numbers,
+      blindMode: !!cfg.blindMode, stopOnError: cfg.stopOnError, lazyMode: !!cfg.lazyMode,
+      confidenceMode: !!cfg.confidenceMode, freedomMode: !!cfg.freedomMode,
+      strictSpace: !!cfg.strictSpace, minWpm: cfg.minWpm, minAcc: cfg.minAcc,
+      ...(mode === "custom" ? { unit: customUnit() } : {}),
+    } });
+  } catch (e) {
+    // B-ENG-008(g): confidenceMode × stopOnError!=off refuses session start.
+    alert("cannot start test: " + e.message);
+    return;
+  }
   renderWords();
   $("result").hidden = true; $("board").hidden = true; $("test").hidden = false;
   timerEl.textContent = ""; wpmEl.textContent = "0"; accEl.textContent = "100";
@@ -173,14 +221,65 @@ function refreshActiveWord() {
 }
 
 // ---------- input ----------
+// Opposite-shift enforcement (B-ENG-008(d)) is DELEGATED to this input layer
+// (round-3 ruling BQ-ENG-03): an input-filter preference. The engine admits char
+// events identically with or without the optional `shift` evidence field, which
+// rides the keystroke-event schema as plumbing only.
+const shiftHeld = new Set();      // subset of {"left","right"}
+let lastShiftSide = "left";
+addEventListener("keydown", (e) => {
+  if (e.key !== "Shift") return;
+  const side = e.location === 2 ? "right" : "left"; // KeyboardEvent.location: 1 left, 2 right
+  shiftHeld.add(side); lastShiftSide = side;
+});
+addEventListener("keyup", (e) => {
+  if (e.key === "Shift") shiftHeld.delete(e.location === 2 ? "right" : "left");
+});
+// US-QWERTY touch-typing hand split (delegated data: the reference layout map
+// was not sealed; this is the settled local table, see engine-v2-report).
+const LEFT_HAND = new Set([..."`12345qwertasdfgzxcvb", ..."~!@#$%QWERTASDFGZXCVB"]);
+const RIGHT_HAND = new Set([..."67890-=[]\\;',./yuiophjklnm", ..."^&*()_+{}|:\"<>?YUIOPHJKLNM"]);
+const SHIFTED_SYMBOLS = new Set([..."~!@#$%^&*()_+{}|:\"<>?"]);
+function requiresShift(ch) {
+  if (SHIFTED_SYMBOLS.has(ch)) return true;
+  return ch.toLowerCase() !== ch.toUpperCase() && ch === ch.toUpperCase(); // uppercase letter
+}
+// Returns false when the keystroke violates the opposite-shift preference and
+// must be filtered here (never reaches the engine).
+function oppositeShiftAdmits(ch) {
+  if (!cfg.oppositeShift || !requiresShift(ch)) return true;
+  const side = LEFT_HAND.has(ch) ? "left" : RIGHT_HAND.has(ch) ? "right" : null;
+  if (!side) return true; // unknown key: admit (preference, not a hard gate)
+  return shiftHeld.has(side === "left" ? "right" : "left");
+}
+function shiftEvidence() {
+  if (shiftHeld.size === 0) return "none";
+  if (shiftHeld.size === 2) return lastShiftSide;
+  return [...shiftHeld][0];
+}
+
 wordsEl.addEventListener("keydown", (e) => {
   if (!session || session.completed) return;
   const t = performance.now();
-  if (e.key === "Tab") { e.preventDefault(); session.feed({ t, type: "restart" }); newTest(); return; }
-  if (e.key === "Escape") { finish(true); return; }
+  // quickRestart routing (user-config v1.1.0 key; default tab — off|tab|esc|enter).
+  // Zen manual end (B-ENG-007: esc/enter routed client-side) takes precedence
+  // over a colliding quickRestart binding.
+  if (session.mode === "zen" && (e.key === "Escape" || e.key === "Enter")) {
+    e.preventDefault(); finish(true); return;
+  }
+  const qr = cfg.quickRestart ?? "tab";
+  const isQuickRestart = (qr === "tab" && e.key === "Tab") ||
+                         (qr === "esc" && e.key === "Escape") ||
+                         (qr === "enter" && e.key === "Enter");
+  if (isQuickRestart) { e.preventDefault(); session.feed({ t, type: "restart" }); newTest(); return; }
+  if (e.key === "Tab") { e.preventDefault(); return; } // unbound: keep focus, inert
+  if (e.key === "Escape") { finish(true); return; }    // v1 bail behavior when unbound
   if (e.key === "Backspace") { e.preventDefault(); session.feed({ t, type: "backspace" }); }
   else if (e.key === " ") { e.preventDefault(); session.feed({ t, type: "space" }); }
-  else if (e.key.length === 1 && !e.ctrlKey && !e.metaKey) session.feed({ t, type: "char", value: e.key });
+  else if (e.key.length === 1 && !e.ctrlKey && !e.metaKey) {
+    if (!oppositeShiftAdmits(e.key)) { e.preventDefault(); return; } // filtered at input layer
+    session.feed({ t, type: "char", value: e.key, shift: shiftEvidence() });
+  }
   else return;
   // Refresh BEFORE the completion branch (B-UI-002): the completing keystroke is
   // still a keystroke, so the final word's letter states must be faithful even as
@@ -264,5 +363,5 @@ async function loadBoard(m2) {
 ticker = setInterval(() => { if (session && !session.completed) liveStats(); }, 250);
 addEventListener("resize", updateCaret);
 refreshUser();
-loadTheme();
+loadConfig();
 newTest();

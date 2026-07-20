@@ -101,6 +101,27 @@ const p95 = (xs) => { const s = [...xs].sort((a, b) => a - b); return s[Math.flo
   rec("O-AC-002", p95(times) <= 5, `p95=${p95(times).toFixed(3)}ms over 5000 evals`);
 }
 {
+  // keystroke handling p95 <= 5ms per event (O-ENG-002) — v2.0.0 engine path with
+  // the mode-matrix gates exercised (letter-stop check + lazy compare per feed;
+  // pre-existing v1 coverage gap closed alongside the v2 validator extension)
+  const s = new TypingSession({ mode: "words", mode2: "6000", words: generateWords(6000, 11),
+                                config: { stopOnError: "letter", strictSpace: true, lazyMode: true } });
+  const samples = [];
+  let t = 1000;
+  outer:
+  for (const w of s.words) {
+    for (const ch of w) {
+      const t0 = process.hrtime.bigint();
+      s.feed({ t: t += 37, type: "char", value: ch });
+      samples.push(Number(process.hrtime.bigint() - t0) / 1e6);
+      if (samples.length >= 5000) break outer;
+    }
+    s.feed({ t: t += 37, type: "space" });
+  }
+  rec("O-ENG-002", p95(samples) <= 5,
+      `p95=${p95(samples).toFixed(4)}ms over ${samples.length} keystroke feeds (v2 gates on)`);
+}
+{
   const app = await bootApp();
   try {
     const token = await app.signup("perf_user");

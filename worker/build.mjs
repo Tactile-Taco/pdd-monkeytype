@@ -37,6 +37,7 @@ import { scryptSync, randomBytes, createHmac, timingSafeEqual, randomUUID } from
 
 for (const [label, rel] of [
   ["shared/stats.js", "src/shared/stats.js"],
+  ["shared/themes.js", "src/shared/themes.js"],
   ["engine/lazy.js", "src/engine/lazy.js"],
   ["engine/countChars.js", "src/engine/countChars.js"],
   ["engine/words.js", "src/engine/words.js"],
@@ -73,6 +74,7 @@ const assets = {
   "/engine/words.js": text(join(impl, "src/engine/words.js"), "text/javascript; charset=utf-8"),
   "/engine/wordlist.js": text(join(impl, "src/engine/wordlist.js"), "text/javascript; charset=utf-8"),
   "/shared/stats.js": text(join(impl, "src/shared/stats.js"), "text/javascript; charset=utf-8"),
+  "/shared/themes.js": text(join(impl, "src/shared/themes.js"), "text/javascript; charset=utf-8"),
 };
 
 const glue = read(join(here, "glue.mjs")).replace(

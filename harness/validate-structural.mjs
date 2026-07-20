@@ -41,18 +41,25 @@ try {
     check("S-CFG-001", badPut.status === 422 && cfg.validate("error.schema.json", badPut.body).ok, "unknown key rejected");
     const empty = await app.call("/api/config", { method: "PUT", token, body: {} });
     check("S-CFG-002", empty.status === 422, "empty update rejected");
-    // ---------- user-config v1.1.1: closed 24-key set (S-CFG-001 amended) ----------
+    // ---------- user-config v1.2.0: closed 37-key set (S-CFG-001 amended) ----------
     {
-      const fresh = await app.signup("cfg_fresh24");
+      const fresh = await app.signup("cfg_fresh37");
       const body = (await app.call("/api/config", { token: fresh })).body;
       const keys = Object.keys(body ?? {}).sort();
       const sealed = Object.keys(SEALED_CONFIG_DEFAULTS).sort();
-      check("S-CFG-001", keys.length === 24 && JSON.stringify(keys) === JSON.stringify(sealed),
-            `GET presents exactly the 24 sealed keys (n=${keys.length})`);
+      check("S-CFG-001", keys.length === 37 && JSON.stringify(keys) === JSON.stringify(sealed),
+            `GET presents exactly the 37 sealed keys (n=${keys.length})`);
       // B-CFG-001: every key present, unset keys at the documented sealed defaults
       // (incl. fontSize: 0 — the v1.1.1 PATCH resolution of BQ-IMPL-01).
       check("B-CFG-001", sealed.every((k) => body[k] === SEALED_CONFIG_DEFAULTS[k]) && body.fontSize === 0,
-            "all 24 keys at documented defaults (fontSize:0 present)");
+            "all 37 keys at documented defaults (fontSize:0 present)");
+      // BQ-CFG-01 (v1.2.0): customThemeId removed pre-consumer — PUT carrying it
+      // is an unknown-key rejection (S-CFG-001), and GET never presents it.
+      const tOld = await app.signup("cfg_removed_key");
+      const rmPut = await app.call("/api/config", { method: "PUT", token: tOld, body: { customThemeId: "theme-42" } });
+      check("S-CFG-001", rmPut.status === 422 && cfg.validate("error.schema.json", rmPut.body).ok &&
+            !("customThemeId" in (await app.call("/api/config", { token: tOld })).body),
+            `customThemeId PUT -> ${rmPut.status} (removed key, intended rejection)`);
       // v1.1.1 fontSize domain: 0 accepted, -1 rejected wholesale (422 + ErrorEnvelope)
       const t2 = await app.signup("cfg_fontsize");
       const ok0 = await app.call("/api/config", { method: "PUT", token: t2, body: { fontSize: 0 } });
@@ -68,6 +75,33 @@ try {
             cfg.validate("error.schema.json", noGet.body).ok && cfg.validate("error.schema.json", noPut.body).ok,
             `GET=${noGet.status} PUT=${noPut.status}`);
     }
+  }
+  // ---------- theme-catalog (v1.0.0, NEW bundle) ----------
+  const thm = loadBundle(P("theme-catalog"));
+  const ui = loadBundle(P("ui-presentation"));
+  {
+    const list = await app.call("/api/themes");
+    check("S-THM-001", list.status === 200 && thm.validate("theme-catalog.schema.json", list.body).ok,
+          JSON.stringify(thm.validate("theme-catalog.schema.json", list.body).errors ?? {}).slice(0, 120));
+    // every listed theme retrievable + charter-schema conformant (nine sealed slots)
+    const SLOTS = ["--bg", "--main", "--caret", "--sub", "--sub-alt", "--text", "--error", "--error-extra", "--colorful-error"];
+    let okAll = true, checked = 0, ev = "";
+    for (const { name } of list.body?.themes ?? []) {
+      const one = await app.call("/api/themes/" + encodeURIComponent(name));
+      checked++;
+      const v = ui.validate("theme.schema.json", one.body);
+      const slotsOk = SLOTS.every((s) => typeof one.body?.tokens?.[s] === "string");
+      if (one.status !== 200 || !v.ok || !slotsOk || one.body?.name !== name) {
+        okAll = false; ev = `${name}: status=${one.status} schema=${v.ok} slots=${slotsOk}`;
+        if (!v.ok) ev += " " + JSON.stringify(v.errors).slice(0, 140);
+        break;
+      }
+    }
+    check("S-THM-001", okAll && checked >= 1, `${checked} themes charter-schema conformant ${ev}`);
+    check("S-THM-002", okAll, `nine sealed slots present on every theme (${checked} checked)`);
+    const unk = await app.call("/api/themes/definitely-not-a-theme");
+    check("S-THM-003", unk.status === 404 && thm.validate("error.schema.json", unk.body).ok,
+          `unknown -> ${unk.status} ErrorEnvelope`);
   }
   // ---------- quote-library ----------
   const qt = loadBundle(P("quote-library"));

@@ -149,6 +149,66 @@ const p95 = (xs) => { const s = [...xs].sort((a, b) => a - b); return s[Math.flo
       lb.push(Number(process.hrtime.bigint() - t0) / 1e6);
     }
     rec("O-LB-001", p95(lb) <= 100, `p95=${p95(lb).toFixed(2)}ms over 50 reqs`);
+    // theme-catalog reads p95 <= 50ms (O-THM-002)
+    const thmT = [];
+    for (let i = 0; i < 100; i++) {
+      const t0 = process.hrtime.bigint();
+      await app.call(i % 2 ? "/api/themes" : "/api/themes/serika_dark");
+      thmT.push(Number(process.hrtime.bigint() - t0) / 1e6);
+    }
+    rec("O-THM-002", p95(thmT) <= 50, `p95=${p95(thmT).toFixed(2)}ms over 100 reqs`);
+    // O-THM-001: catalog reads need no authentication and perform zero store
+    // writes (served from bundled data assets; data dir untouched by reads).
+    {
+      const before = readdirSync(app.dataDir).map((f) => [f, statSync(join(app.dataDir, f)).mtimeMs]);
+      const anon1 = await app.call("/api/themes");
+      const anon2 = await app.call("/api/themes/dracula");
+      const anon404 = await app.call("/api/themes/nope");
+      const after = readdirSync(app.dataDir).map((f) => [f, statSync(join(app.dataDir, f)).mtimeMs]);
+      rec("O-THM-001", anon1.status === 200 && anon2.status === 200 && anon404.status === 404 &&
+          JSON.stringify(before) === JSON.stringify(after),
+          `unauthenticated reads ok (${anon1.status}/${anon2.status}/${anon404.status}); data dir unchanged (${before.length} files)`);
+    }
+  } finally { app.close(); }
+}
+
+// ---------- 3b. O-THM-003: static charter bands over every SERVED theme --------
+// Pure color math (WCAG luminance / rgb->HSL) computed harness-side from the
+// served payloads — INDEPENDENT of the implementation's own admission check
+// (protocols/ui-presentation/validators/lib/color.mjs is the validator copy).
+{
+  const { parseColor, luminance, contrast, rgbToHsl, maxChannelDelta } =
+    await import("../protocols/ui-presentation/validators/lib/color.mjs");
+  const app = await bootApp();
+  try {
+    const list = await app.call("/api/themes");
+    const fails = [];
+    const RED = (h) => (h >= 0 && h <= 15) || (h >= 340 && h <= 360);
+    for (const { name } of list.body?.themes ?? []) {
+      const one = await app.call("/api/themes/" + encodeURIComponent(name));
+      const tk = one.body?.tokens ?? {};
+      const p = (k) => parseColor(tk[k] ?? "");
+      const bg = p("--bg"), text = p("--text"), err = p("--error"), ext = p("--error-extra"),
+            car = p("--caret"), sub = p("--sub");
+      if (!(bg && text && err && ext && car && sub)) { fails.push(name + ":unparseable"); continue; }
+      if (contrast(text, bg) < 4.5) fails.push(`${name}:text/bg=${contrast(text, bg).toFixed(2)}`);
+      if (contrast(err, bg) < 3.0) fails.push(`${name}:error/bg=${contrast(err, bg).toFixed(2)}`);
+      if (contrast(car, bg) < 3.0) fails.push(`${name}:caret/bg=${contrast(car, bg).toFixed(2)}`);
+      if (luminance(bg) > 0.2) fails.push(`${name}:L(bg)=${luminance(bg).toFixed(3)}`);
+      if (luminance(text) <= luminance(bg)) fails.push(`${name}:L(text)<=L(bg)`);
+      for (const [k, c] of [["error", err], ["error-extra", ext]]) {
+        const { h, s } = rgbToHsl(c);
+        if (!RED(h) || s < 0.45) fails.push(`${name}:${k} h=${h.toFixed(1)} s=${s.toFixed(3)}`);
+      }
+      const states = { untyped: sub, correct: text, incorrect: err, extra: ext };
+      const nn = Object.keys(states);
+      for (let i = 0; i < nn.length; i++) for (let j = i + 1; j < nn.length; j++) {
+        const d = maxChannelDelta(states[nn[i]], states[nn[j]]);
+        if (d < 32) fails.push(`${name}:${nn[i]}~${nn[j]}=${d}`);
+      }
+    }
+    rec("O-THM-003", fails.length === 0 && (list.body?.themes ?? []).length >= 1,
+        fails.slice(0, 4).join("; ") || `all ${(list.body?.themes ?? []).length} served themes pass static charter bands`);
   } finally { app.close(); }
 }
 

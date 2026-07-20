@@ -116,6 +116,32 @@ async function handleApi(request, url, stores) {
     return jsonRes({ ...CONFIG_DEFAULTS, ...configs.read()[a.uid] });
   }
 
+  // ---- theme-catalog (v1.0.0, read-only; port of implementation/src/server/app.js) ----
+  // Admission (O-THM-003): static charter shape+bands re-checked per isolate boot.
+  // THEMES/validateThemeShape/charterBandReport/catalogList/findTheme come from the
+  // verbatim shared/themes.js section above. Payloads cached per isolate (B-THM-003).
+  if (!globalThis.__thmCatalog) {
+    for (const t of THEMES) {
+      const shape = validateThemeShape(t);
+      const bands = charterBandReport(t.tokens);
+      if (!shape.ok || !bands.ok) throw new Error("theme-catalog admission refused: " + t?.name);
+    }
+    globalThis.__thmCatalog = {
+      list: JSON.stringify({ themes: catalogList() }),
+      themes: new Map(THEMES.map((t) => [t.name, JSON.stringify(t)])),
+    };
+  }
+  const cat = globalThis.__thmCatalog;
+  const rawJson = (payload, status = 200) =>
+    new Response(payload, { status, headers: { "content-type": "application/json; charset=utf-8" } });
+  if (m === "GET" && path === "/api/themes") return rawJson(cat.list); // O-THM-001: no auth, zero writes
+  const thmMatch = path.match(/^\/api\/themes\/([^/]+)$/);
+  if (m === "GET" && thmMatch) {
+    const payload = cat.themes.get(decodeURIComponent(thmMatch[1]));
+    if (!payload) return errRes(404, "not_found", "unknown theme"); // B-THM-002: never substitution
+    return rawJson(payload);
+  }
+
   // ---- quote-library ----
   const QUOTE_GROUPS = [[1, 100], [101, 300], [301, 600], [601, Infinity]]; // B-QT-002
   const groupOf = (len) => QUOTE_GROUPS.findIndex(([lo, hi]) => len >= lo && len <= hi);

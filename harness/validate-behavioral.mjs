@@ -521,8 +521,9 @@ try {
     return r.status === 422 && got.body.numbers === false && got.body.punctuation === true; // wholesale reject
   }, 5);
 
-  // ---------- user-config v1.1.1: 24-key round-trip, defaults-merge, wholesale 422 ----------
-  const KEYS24 = Object.keys(SEALED_CONFIG_DEFAULTS); // sealed closed key set (ambiguity-log)
+  // ---------- user-config v1.2.0: 37-key round-trip, defaults-merge, wholesale 422 ----------
+  const KEYS37 = Object.keys(SEALED_CONFIG_DEFAULTS); // sealed closed key set (ambiguity-log)
+  const HEXARB = fc.constantFrom("", "#abc", "#a1b2c3", "#323437".toUpperCase(), "zz-top");
   const CFG_ARB = { // valid value domains per the sealed config schema
     mode: fc.constantFrom("time", "words", "quote", "zen", "custom"),
     mode2: fc.constantFrom("15", "30", "60", "120", "10", "3"),
@@ -538,36 +539,47 @@ try {
     fontFamily: fc.constantFrom("", "Fira Mono", "f".repeat(100)),
     fontSize: fc.double({ min: 0, max: 200, noNaN: true }),
     tapeMode: fc.boolean(), quickRestart: fc.constantFrom("off", "tab", "esc", "enter"),
-    flipTestColors: fc.boolean(), colorfulError: fc.boolean(),
-    customThemeId: fc.constantFrom("", "theme-42", "c".repeat(100)), randomTheme: fc.boolean(),
+    flipTestColors: fc.boolean(), colorfulError: fc.boolean(), randomTheme: fc.boolean(),
+    // v1.2.0 batch-2: custom slots are loose strings <= 32 ("" = unset);
+    // caret enum; live-stats booleans
+    customThemeBg: HEXARB, customThemeMain: HEXARB, customThemeCaret: HEXARB,
+    customThemeSub: HEXARB, customThemeSubAlt: HEXARB, customThemeText: HEXARB,
+    customThemeError: HEXARB, customThemeErrorExtra: HEXARB, customThemeColorfulError: HEXARB,
+    caretStyle: fc.constantFrom("off", "line", "block", "outline", "underline"),
+    smoothCaret: fc.boolean(),
+    liveWpm: fc.boolean(), liveAcc: fc.boolean(), liveBurst: fc.boolean(),
   };
   // B-CFG-001 (amended): GET presents every schema key; unset keys at documented
   // defaults — incl. fontSize: 0 (v1.1.1 PATCH, BQ-IMPL-01)
   await asyncProp("B-CFG-001", fc.constant(null), async () => {
     const t = await app.signup("cfg" + Math.random().toString(36).slice(2, 8));
     const got = (await app.call("/api/config", { token: t })).body;
-    return Object.keys(got ?? {}).length === 24 && got.fontSize === 0 &&
-           KEYS24.every((k) => got[k] === SEALED_CONFIG_DEFAULTS[k]);
+    return Object.keys(got ?? {}).length === 37 && got.fontSize === 0 &&
+           KEYS37.every((k) => got[k] === SEALED_CONFIG_DEFAULTS[k]);
   }, 3);
-  // B-CFG-002: exhaustive 24-key sequential round-trip — every key individually
+  // B-CFG-002: exhaustive 37-key sequential round-trip — every key individually
   // settable, and the merged GET retains every previously set key
   {
     const RT = { mode: "words", mode2: "60", language: "klingon", punctuation: true, numbers: true,
       difficulty: "expert", blindMode: true, stopOnError: "letter", theme: "serika_light", lazyMode: true,
       confidenceMode: true, freedomMode: true, strictSpace: true, oppositeShift: true,
       minWpm: 42.5, minAcc: 87.5, fontFamily: "Fira Mono", fontSize: 16.5, tapeMode: true,
-      quickRestart: "esc", flipTestColors: true, colorfulError: true, customThemeId: "theme-42", randomTheme: true };
+      quickRestart: "esc", flipTestColors: true, colorfulError: true, randomTheme: true,
+      customThemeBg: "#111111", customThemeMain: "#222222", customThemeCaret: "#333333",
+      customThemeSub: "#444444", customThemeSubAlt: "#555555", customThemeText: "#666666",
+      customThemeError: "#ff0000", customThemeErrorExtra: "#880000", customThemeColorfulError: "#ff2233",
+      caretStyle: "outline", smoothCaret: false, liveWpm: true, liveAcc: true, liveBurst: true };
     const t = await app.signup("cfg" + Math.random().toString(36).slice(2, 8));
     const expected = { ...SEALED_CONFIG_DEFAULTS };
     let ok = true, done = 0;
-    for (const k of KEYS24) {
+    for (const k of KEYS37) {
       const r = await app.call("/api/config", { method: "PUT", token: t, body: { [k]: RT[k] } });
       expected[k] = RT[k];
       const got = (await app.call("/api/config", { token: t })).body;
       done++;
-      if (r.status !== 200 || !KEYS24.every((ek) => got?.[ek] === expected[ek])) { ok = false; break; }
+      if (r.status !== 200 || !KEYS37.every((ek) => got?.[ek] === expected[ek])) { ok = false; break; }
     }
-    rec("B-CFG-002", ok, `24-key sequential round-trip (${done}/24 PUTs): each key set, all prior retained`);
+    rec("B-CFG-002", ok, `37-key sequential round-trip (${done}/37 PUTs): each key set, all prior retained`);
   }
   // B-CFG-002: random partial updates == merge over the sealed defaults (property)
   await asyncProp("B-CFG-002",
@@ -577,10 +589,10 @@ try {
       const got = (await app.call("/api/config", { token: t })).body;
       return r.status === 200 &&
              Object.entries(upd).every(([k, v]) => got?.[k] === v) &&
-             KEYS24.filter((k) => !(k in upd)).every((k) => got?.[k] === SEALED_CONFIG_DEFAULTS[k]);
+             KEYS37.filter((k) => !(k in upd)).every((k) => got?.[k] === SEALED_CONFIG_DEFAULTS[k]);
     }, 15);
-  // B-CFG-003: wholesale 422 — invalid values for EVERY one of the 24 keys (and
-  // unknown keys); no key from a rejected request is persisted
+  // B-CFG-003: wholesale 422 — invalid values for EVERY one of the 37 keys (and
+  // unknown keys, incl. the v1.2.0-removed customThemeId); nothing persisted
   const CFG_INVALID = { // type/domain violations per the sealed schema (all non-conforming)
     mode: ["sideways", 1, true], mode2: [5, true, {}], language: [42, true, []],
     punctuation: ["yes", 1], numbers: ["no", 0], difficulty: ["hard", 2],
@@ -590,16 +602,24 @@ try {
     minWpm: [-1, "80"], minAcc: [101, -1, "90"],
     fontFamily: ["x".repeat(101), 5], fontSize: [-1, "16"],
     tapeMode: ["yes", 1], quickRestart: ["space", 2],
-    flipTestColors: ["yes", 1], colorfulError: ["no", 0],
-    customThemeId: ["y".repeat(101), 9], randomTheme: ["yes", 1],
+    flipTestColors: ["yes", 1], colorfulError: ["no", 0], randomTheme: ["yes", 1],
+    customThemeBg: ["y".repeat(33), 9], customThemeMain: ["y".repeat(33), 9],
+    customThemeCaret: ["y".repeat(33), 9], customThemeSub: ["y".repeat(33), 9],
+    customThemeSubAlt: ["y".repeat(33), 9], customThemeText: ["y".repeat(33), 9],
+    customThemeError: ["y".repeat(33), 9], customThemeErrorExtra: ["y".repeat(33), 9],
+    customThemeColorfulError: ["y".repeat(33), 9],
+    caretStyle: ["curly", 2], smoothCaret: ["yes", 1],
+    liveWpm: ["yes", 1], liveAcc: ["yes", 1], liveBurst: ["yes", 1],
   };
   {
     const t = await app.signup("cfg" + Math.random().toString(36).slice(2, 8));
     await app.call("/api/config", { method: "PUT", token: t, body: { punctuation: true, minWpm: 33 } });
     let ok = true, n = 0;
     outer:
-    for (const k of [...KEYS24, "noSuchKey"]) {
-      const vals = k === "noSuchKey" ? [1] : CFG_INVALID[k];
+    for (const k of [...KEYS37, "customThemeId", "noSuchKey"]) {
+      // customThemeId: removed in v1.2.0 (BQ-CFG-01) — even a formerly-valid
+      // value is now an unknown-key rejection (intended per the ruling).
+      const vals = k === "noSuchKey" ? [1] : k === "customThemeId" ? ["theme-42"] : CFG_INVALID[k];
       for (const v of vals) {
         // bundle a second, VALID key (never k itself): wholesale reject must drop it too
         const bundle = k === "numbers" ? { theme: "matrix" } : { numbers: true };
@@ -610,15 +630,49 @@ try {
             got?.numbers !== false || got?.theme !== "serika_dark") { ok = false; break outer; }
       }
     }
-    rec("B-CFG-003", ok, `wholesale 422 on ${n} invalid requests across all 24 keys + unknown; nothing persisted`);
+    rec("B-CFG-003", ok, `wholesale 422 on ${n} invalid requests across all 37 keys + removed + unknown; nothing persisted`);
   }
-  await asyncProp("B-CFG-003", fc.tuple(fc.constantFrom(...KEYS24), fc.nat({ max: 2 })), async ([k, i]) => {
+  await asyncProp("B-CFG-003", fc.tuple(fc.constantFrom(...KEYS37), fc.nat({ max: 2 })), async ([k, i]) => {
     const vals = CFG_INVALID[k];
     const t = await app.signup("cfg" + Math.random().toString(36).slice(2, 8));
     const r = await app.call("/api/config", { method: "PUT", token: t, body: { [k]: vals[i % vals.length] } });
     const got = (await app.call("/api/config", { token: t })).body;
     return r.status === 422 && got?.[k] === SEALED_CONFIG_DEFAULTS[k];
   }, 12);
+
+  // ---------- theme-catalog v1.0.0 (NEW bundle) ----------
+  // B-THM-001: list/get round-trip consistency — every listed theme retrievable
+  // by name with a token set identical to its catalog entry.
+  {
+    const list = await app.call("/api/themes");
+    let ok = list.status === 200 && Array.isArray(list.body?.themes) && list.body.themes.length >= 1;
+    let n = 0;
+    for (const { name } of list.body?.themes ?? []) {
+      const one = await app.call("/api/themes/" + encodeURIComponent(name));
+      n++;
+      if (one.status !== 200 || one.body?.name !== name ||
+          typeof one.body?.tokens !== "object" || Object.keys(one.body.tokens).length < 9) { ok = false; break; }
+    }
+    rec("B-THM-001", ok, `list/get round-trip over ${n} themes (get(n).name == n, full token sets)`);
+  }
+  // B-THM-002: unknown name -> ErrorEnvelope(not_found); NEVER substitution.
+  {
+    const unk = await app.call("/api/themes/definitely-not-a-theme");
+    const def = await app.call("/api/themes/serika_dark");
+    rec("B-THM-002", unk.status === 404 && unk.body?.error?.code === "not_found" &&
+        JSON.stringify(unk.body?.tokens ?? null) !== JSON.stringify(def.body?.tokens ?? null) &&
+        unk.body?.name === undefined,
+        `unknown -> ${unk.status} code=${unk.body?.error?.code} (no substitute tokens)`);
+  }
+  // B-THM-003: byte-identical repeat reads within a deploy.
+  {
+    const r1 = await fetch(app.base + "/api/themes");
+    const r2 = await fetch(app.base + "/api/themes");
+    const t1 = await fetch(app.base + "/api/themes/dracula");
+    const t2 = await fetch(app.base + "/api/themes/dracula");
+    const b1 = await r1.text(), b2 = await r2.text(), b3 = await t1.text(), b4 = await t2.text();
+    rec("B-THM-003", b1 === b2 && b3 === b4, `list ${b1.length}B + theme ${b3.length}B byte-identical across reads`);
+  }
 
   await asyncProp("B-QT-002", fc.integer({ min: 1, max: 500 }), async (len) => {
     const t = await app.signup("qt" + Math.random().toString(36).slice(2, 8));

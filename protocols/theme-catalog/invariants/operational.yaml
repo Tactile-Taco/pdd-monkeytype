@@ -1,0 +1,43 @@
+invariants:
+  - id: O-THM-001
+    statement: >
+      Catalog reads require no authentication and perform zero store writes;
+      the catalog is served from bundled data assets with no outbound network.
+    severity: must
+    rationale: >
+      The catalog is public reference data (theme list is unauthenticated in
+      the reference); write-free static delivery keeps the capability surface
+      minimal and both server candidates (Node/Express, Workers) admitted.
+    validation:
+      - egress-monitor
+      - contract-tests
+  - id: O-THM-002
+    statement: >
+      Catalog read p95 latency <= 50ms.
+    severity: must
+    rationale: >
+      Static asset delivery; mirrors the user-config latency posture.
+    validation:
+      - resource-budget
+  - id: O-THM-003
+    statement: >
+      Every catalog theme satisfies the ui-presentation charter bands computed
+      STATICALLY from its token values (no browser): contrast(--text, --bg)
+      >= 4.5, contrast(--error, --bg) >= 3.0, contrast(--caret, --bg) >= 3.0;
+      luminance(--bg) <= 0.2 and luminance(--text) > luminance(--bg);
+      --error/--error-extra hue in [0,15] union [340,360] with s >= 0.45;
+      the four renderable letter-state colors derived from the token set are
+      pairwise distinct with max RGB channel delta >= 32.
+    severity: must
+    rationale: >
+      Cheap deterministic color math (WCAG luminance/HSL formulas over hex
+      tokens) at catalog admission time prevents shipping a theme that the
+      ui-presentation browser validators (O-UI-001..003) would later reject —
+      the same checks, run earlier, at near-zero cost. flipTestColors is
+      exempt by symmetry (WCAG contrast is symmetric). Round-4 ruling
+      (BQ-THM-02): NO exceptions — a starter theme that fails the floors is
+      hex-adjusted minimally with the delta documented (PSN-UI-01 precedent:
+      the charter is the persistent intent, values are delegated).
+    property: "forall themes: charterBands(theme.tokens) == true"
+    validation:
+      - property-check

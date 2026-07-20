@@ -36,8 +36,14 @@ export function validateCompletedEvent(e) {
   return errs;
 }
 
-// user-config v1.1.0: closed key set expanded 10 -> 24 (brownfield batch 1).
+// user-config v1.2.0: closed key set 24 -> 37 (brownfield batch 2; 14 added,
+// customThemeId removed pre-consumer per round-4 ruling BQ-CFG-01 — a stored
+// config carrying it is rejected on next PUT per S-CFG-001, intended).
 // Value domains mirror protocols/user-config/schemas/config.schema.json exactly.
+// Custom theme slot VALUES stay loose here (any string <= 32 chars, "" = unset);
+// charter-pattern conformance is enforced at application time by ui-presentation
+// theme resolution (B-UI-005 fail-closed all-nine gate) — deliberate per the
+// v1.2.0 ambiguity-log so "" remains representable as unset.
 export const CONFIG_KEYS = {
   // v1.0.0 keys (unchanged)
   mode: (v) => ["time", "words", "quote", "zen", "custom"].includes(v),
@@ -64,14 +70,29 @@ export const CONFIG_KEYS = {
   quickRestart: (v) => ["off", "tab", "esc", "enter"].includes(v),
   flipTestColors: (v) => typeof v === "boolean",
   colorfulError: (v) => typeof v === "boolean",
-  customThemeId: (v) => typeof v === "string" && v.length <= 100,
   randomTheme: (v) => typeof v === "boolean",
+  // batch-2 (v1.2.0): custom theme slots (9, per C2 incl. sub-alt/colorful-error)
+  customThemeBg: (v) => typeof v === "string" && v.length <= 32,
+  customThemeMain: (v) => typeof v === "string" && v.length <= 32,
+  customThemeCaret: (v) => typeof v === "string" && v.length <= 32,
+  customThemeSub: (v) => typeof v === "string" && v.length <= 32,
+  customThemeSubAlt: (v) => typeof v === "string" && v.length <= 32,
+  customThemeText: (v) => typeof v === "string" && v.length <= 32,
+  customThemeError: (v) => typeof v === "string" && v.length <= 32,
+  customThemeErrorExtra: (v) => typeof v === "string" && v.length <= 32,
+  customThemeColorfulError: (v) => typeof v === "string" && v.length <= 32,
+  // batch-2 (v1.2.0): caret
+  caretStyle: (v) => ["off", "line", "block", "outline", "underline"].includes(v),
+  smoothCaret: (v) => typeof v === "boolean",
+  // batch-2 (v1.2.0): live-stats display toggles (STORAGE sealed; display delegated)
+  liveWpm: (v) => typeof v === "boolean",
+  liveAcc: (v) => typeof v === "boolean",
+  liveBurst: (v) => typeof v === "boolean",
 };
 
 // Sealed defaults (ambiguity-log). Defaults-merge at read time => zero data
-// migration: configs stored under v1.0.0 are valid v1.1.x configs (B-CFG-001).
-// fontSize: 0 = unset/client default — representable since user-config v1.1.1
-// relaxed the schema to minimum 0 (BQ-IMPL-01 adjudicated, closed).
+// migration: configs stored under any prior minor are valid v1.2.0 configs
+// (B-CFG-001). fontSize: 0 = unset/client default (v1.1.1, BQ-IMPL-01 closed).
 export const CONFIG_DEFAULTS = {
   mode: "time", mode2: "30", language: "english", punctuation: false,
   numbers: false, difficulty: "normal", blindMode: false, stopOnError: "off",
@@ -80,7 +101,12 @@ export const CONFIG_DEFAULTS = {
   oppositeShift: false, minWpm: 0, minAcc: 0,
   fontFamily: "", fontSize: 0, tapeMode: false,
   quickRestart: "tab", flipTestColors: false, colorfulError: false,
-  customThemeId: "", randomTheme: false,
+  randomTheme: false,
+  customThemeBg: "", customThemeMain: "", customThemeCaret: "",
+  customThemeSub: "", customThemeSubAlt: "", customThemeText: "",
+  customThemeError: "", customThemeErrorExtra: "", customThemeColorfulError: "",
+  caretStyle: "line", smoothCaret: true,
+  liveWpm: false, liveAcc: false, liveBurst: false,
 };
 
 // -> {ok, badKeys} wholesale validation (B-CFG-003)

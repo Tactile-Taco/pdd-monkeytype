@@ -3,6 +3,8 @@
 import { TypingSession } from "/engine/session.js";
 import { internalWordlist } from "/engine/wordlist.js";
 import { round2, calculateWpm } from "/shared/stats.js";
+import { DEFAULT_THEME, THEME_SLOTS, customSlotsToTokens, validateThemeShape,
+         deriveColorfulExtra } from "/shared/themes.js";
 
 const $ = (id) => document.getElementById(id);
 const wordsEl = $("words"), wpmEl = $("wpm"), accEl = $("acc"), timerEl = $("timer");
@@ -50,26 +52,83 @@ async function doAuth(path) {
 $("doLogin").onclick = () => doAuth("/api/account/login");
 $("doSignup").onclick = () => doAuth("/api/account/signup");
 
-// ---------- theme (ui-presentation B-UI-005 / S-UI-004) ----------
-// Single charter-conformant dark theme ships this iteration (ambiguity-log Q2).
-// Theme values arrive only via user-config; unknown or absent values fall back
-// to the default dark theme. Applying a theme sets :root token values only —
-// never structure. Token names are sealed (S-UI-004); values match style.css.
-const THEMES = {
-  dark: { "--bg": "#323437", "--main": "#e2b714", "--caret": "#e2b714",
-          "--text": "#d1d0c5", "--sub": "#646669",
-          "--error": "#cf5763", "--error-extra": "#7e2a33" }, // == style.css :root
-};
-function applyTheme(name) {
-  const tokens = THEMES[name] || THEMES.dark; // conservative fallback (B-UI-005)
-  for (const [k, v] of Object.entries(tokens)) document.documentElement.style.setProperty(k, v);
+// ---------- theme (ui-presentation v2.0.0 B-UI-005 / S-UI-004) ----------
+// Resolution precedence (sealed): (1) user-config custom slots when ALL NINE are
+// non-empty AND charter-pattern conformant; (2) the catalog theme named by
+// user-config theme, read from the theme-catalog handshake (GET /api/themes/:name);
+// (3) the default dark theme (== style.css :root). Applying a theme sets :root
+// token values only — never structure. Catalog reads are cached per deploy
+// (byte-deterministic within a deploy, B-THM-003).
+const catalogCache = { names: null, themes: new Map() };
+async function catalogGet(name) {
+  if (catalogCache.themes.has(name)) return catalogCache.themes.get(name);
+  let theme = null;
+  try {
+    const r = await fetch("/api/themes/" + encodeURIComponent(name));
+    if (r.status === 200) {
+      const t = await r.json();
+      theme = validateThemeShape(t).ok ? t : null; // fail-closed on malformed payloads
+    }
+  } catch { /* unreadable -> fallback path (B-UI-005 (3)) */ }
+  catalogCache.themes.set(name, theme);
+  return theme;
+}
+async function catalogNames() {
+  if (catalogCache.names) return catalogCache.names;
+  let names = [];
+  try {
+    const r = await fetch("/api/themes");
+    if (r.status === 200) {
+      const b = await r.json();
+      names = Array.isArray(b?.themes) ? b.themes.map((x) => x?.name).filter((n) => typeof n === "string" && n) : [];
+    }
+  } catch { /* catalog unreachable -> empty list -> default theme */ }
+  catalogCache.names = names;
+  return names;
+}
+// Async twin of shared resolveThemeTokens (the catalog read is HTTP here; the
+// precedence order itself is the sealed B-UI-005 order, mirrored in the shared
+// module for the sync/unit-tested path).
+async function resolveTokensFor(c) {
+  const custom = customSlotsToTokens(c);            // (1) custom slots, all-nine gate
+  if (custom) return { source: "custom", tokens: custom };
+  const named = c.theme ? await catalogGet(c.theme) : null; // (2) catalog theme by name
+  if (named) return { source: "catalog", name: named.name, tokens: named.tokens };
+  return { source: "default", name: DEFAULT_THEME.name, tokens: DEFAULT_THEME.tokens }; // (3)
+}
+function applyTokens(tokens) {
+  const st = document.documentElement.style;
+  for (const slot of THEME_SLOTS) st.setProperty(slot, tokens[slot]);
+  // B-UI-010(b): the colorful extra variant is derived from --colorful-error
+  // (same hue/saturation, reduced lightness) at application time.
+  st.setProperty("--colorful-error-extra",
+    deriveColorfulExtra(tokens["--colorful-error"]) ?? tokens["--colorful-error"]);
+}
+let themeSeq = 0;
+async function applyThemeResolved() {
+  const seq = ++themeSeq;
+  // randomTheme (B-UI-011): a catalog theme is selected at each test start and
+  // applied atomically — resolution completes before the session's first
+  // keystroke because newTest() awaits this. Selection algorithm delegated.
+  let effCfg = cfg;
+  if (cfg.randomTheme) {
+    const names = await catalogNames();
+    if (seq !== themeSeq) return; // superseded by a newer resolution
+    if (names.length) {
+      const pick = names[Math.floor(Math.random() * names.length)];
+      const t = await catalogGet(pick);
+      if (t) effCfg = { ...cfg, theme: t.name };
+    }
+  }
+  const res = await resolveTokensFor(effCfg);
+  if (seq !== themeSeq) return; // apply only the latest resolution
+  applyTokens(res.tokens);
 }
 
-// ---------- effective config (user-config v1.1.0, 24 keys) ----------
+// ---------- effective config (user-config v1.2.0, 37 keys) ----------
 // Local mirror of the sealed defaults so logged-out sessions and partial/pinned
 // config payloads behave identically to the server defaults-merge (B-CFG-001).
-// fontSize: 0 = unset/client default (user-config v1.1.1, BQ-IMPL-01 closed);
-// ui-presentation v2 owns clamping/applying it.
+// customThemeId was removed in v1.2.0 (BQ-CFG-01) and is gone here too.
 const LOCAL_DEFAULTS = {
   mode: "time", mode2: "30", language: "english", punctuation: false,
   numbers: false, difficulty: "normal", blindMode: false, stopOnError: "off",
@@ -77,17 +136,46 @@ const LOCAL_DEFAULTS = {
   confidenceMode: false, freedomMode: false, strictSpace: false,
   oppositeShift: false, minWpm: 0, minAcc: 0,
   fontFamily: "", fontSize: 0, tapeMode: false, quickRestart: "tab",
-  flipTestColors: false, colorfulError: false, customThemeId: "", randomTheme: false,
+  flipTestColors: false, colorfulError: false, randomTheme: false,
+  customThemeBg: "", customThemeMain: "", customThemeCaret: "",
+  customThemeSub: "", customThemeSubAlt: "", customThemeText: "",
+  customThemeError: "", customThemeErrorExtra: "", customThemeColorfulError: "",
+  caretStyle: "line", smoothCaret: true,
+  liveWpm: false, liveAcc: false, liveBurst: false,
 };
 let cfg = { ...LOCAL_DEFAULTS };
 function applyConfig(next) {
   cfg = { ...LOCAL_DEFAULTS, ...(next ?? {}) };
-  applyTheme(cfg.theme);
-  // Display hooks STUBBED for ui-presentation v2 (it owns blind-mode error
-  // hiding and tape scroll): we only bind the state classes on the stream
-  // container here; no visual behavior change in this iteration.
+  void applyThemeResolved(); // async; sets :root token values only (B-UI-005)
+  applyFont();               // O-UI-004: configurable font, monospace default
+  // Display modes (B-UI-007 blind / B-UI-010 flip+colorful): role classes only —
+  // token values and letter-state classes are untouched (hiding is presentational).
+  document.body.classList.toggle("flip", !!cfg.flipTestColors);
+  document.body.classList.toggle("colorful", !!cfg.colorfulError);
   wordsEl.classList.toggle("blind", !!cfg.blindMode);
   wordsEl.classList.toggle("tape", !!cfg.tapeMode);
+  if (!cfg.tapeMode) { tapeAnchor = null; wordsEl.scrollLeft = 0; }
+  applyCaretStyle();
+  liveStats(); // live-stats toggles (liveWpm/liveAcc/liveBurst) gate the enrichment
+}
+// O-UI-004: fontFamily configurable, monospace default. Applied to the word
+// stream (the surface the invariant binds). Sanitized + generic fallback keeps
+// the system-stack posture (O-UI-006: no font fetching).
+function applyFont() {
+  const fam = String(cfg.fontFamily ?? "").replace(/["';{}<>\\]/g, "").trim();
+  wordsEl.style.fontFamily = fam ? `${fam}, ui-monospace, monospace` : "";
+  // fontSize: rem, 0 = client default; presentation clamps (ambiguity-log) to
+  // [1.5, 4] rem — the floor keeps letters >= 24px (O-UI-001 large-text clause).
+  const fs = Number(cfg.fontSize);
+  wordsEl.style.fontSize = fs > 0 ? Math.min(Math.max(fs, 1.5), 4) + "rem" : "";
+  updateCaret(); // letter metrics changed
+}
+function applyCaretStyle() {
+  caretEl.className = "";
+  const style = ["off", "line", "block", "outline", "underline"].includes(cfg.caretStyle) ? cfg.caretStyle : "line";
+  if (style !== "line") caretEl.classList.add(style);
+  caretEl.classList.toggle("smooth", !!cfg.smoothCaret);
+  updateCaret();
 }
 async function loadConfig() {
   if (!token) { applyConfig(null); return; }
@@ -110,6 +198,10 @@ function customUnit() {
 }
 async function newTest() {
   clearInterval(ticker);
+  tapeAnchor = null; wordsEl.scrollLeft = 0; // tape re-anchors per session
+  // Theme resolution completes BEFORE the view is shown / first keystroke —
+  // this is the atomicity point for randomTheme (B-UI-011).
+  await applyThemeResolved();
   const mode = $("mode").value, mode2 = currentMode2();
   if (mode === "quote") {
     const r = await api("/api/quotes/random?language=english");
@@ -141,7 +233,7 @@ async function newTest() {
   }
   renderWords();
   $("result").hidden = true; $("board").hidden = true; $("test").hidden = false;
-  timerEl.textContent = ""; wpmEl.textContent = "0"; accEl.textContent = "100";
+  timerEl.textContent = ""; wpmEl.textContent = "0"; accEl.textContent = "100"; $("livex").textContent = "";
   wordsEl.focus();
   updateCaret(); // after unhide: rects are measurable only when the view is visible
 }
@@ -170,8 +262,10 @@ function renderWords() {
 
 // B-UI-001: caret bounding rect tracks (wordIndex, n) — horizontally the right
 // edge of letter n-1 of the active word (left edge of letter 0 when n == 0),
-// vertically the active word's line box. Rect math is container-relative, so it
-// stays correct under window scroll without further updates.
+// vertically the active word's line box. Rect math is in CONTENT coordinates
+// (viewport rect + scroll offsets), so it stays correct under window scroll and
+// tape-mode stream translation without further updates.
+let tapeAnchor = null; // px within the stream viewport; FIXITY sealed (±2px), location delegated
 function updateCaret() {
   if (!session || $("test").hidden) return;
   const cur = wordsEl.querySelector(`[data-wi="${session.wordIndex}"]`);
@@ -183,7 +277,8 @@ function updateCaret() {
   if (n > 0 && letters[n - 1]) ref = { rect: letters[n - 1].getBoundingClientRect(), edge: "right" };
   else if (letters[0]) ref = { rect: letters[0].getBoundingClientRect(), edge: "left" };
   else ref = { rect: cur.getBoundingClientRect(), edge: "left" };
-  caretEl.style.left = (ref.edge === "right" ? ref.rect.right : ref.rect.left) - box.left + "px";
+  const contentX = (ref.edge === "right" ? ref.rect.right : ref.rect.left) - box.left + wordsEl.scrollLeft;
+  caretEl.style.left = contentX + "px";
   // Zen edge: a whitespace-target letter span collapses to a zero-size rect;
   // fall back to the word's line box so the caret keeps a visible area (>= 4px^2).
   let top = ref.rect.top, height = ref.rect.height;
@@ -192,8 +287,27 @@ function updateCaret() {
     top = wr.top;
     height = Math.max(wr.height, parseFloat(getComputedStyle(wordsEl).lineHeight) || 0);
   }
-  caretEl.style.top = top - box.top + "px";
+  if (cfg.caretStyle === "underline") { top = top + height - 3; height = 3; } // bottom bar
+  caretEl.style.top = top - box.top + wordsEl.scrollTop + "px";
   caretEl.style.height = height + "px";
+  // Tape mode (B-UI-008): anchored caret — translate the stream so the caret's
+  // viewport X stays fixed across keystrokes. 30% left padding (style.css) keeps
+  // the anchor reachable from the first keystroke; scroll translation is a
+  // permitted mutation-confinement exception (stream translation, B-UI-003).
+  if (cfg.tapeMode) {
+    if (tapeAnchor == null) tapeAnchor = Math.round(wordsEl.clientWidth * 0.3);
+    wordsEl.scrollLeft = Math.max(0, contentX - tapeAnchor);
+  }
+  // smoothCaret: fade-ease pulse on position updates. A positional SLIDE
+  // (left/top transition) would leave the caret mid-flight at scan time and
+  // break the sealed ±2px tracking at the sealed default (smoothCaret=true);
+  // the slide form is deferred to the v2 validator stage (see ui-v2-report).
+  if (caretEl.classList.contains("smooth") && cfg.caretStyle !== "off") {
+    // pulse from 0.65 back to the CLASS opacity (inline style removed at the
+    // end so caretStyle-level opacities — off/block/outline — are preserved)
+    caretEl.style.opacity = "0.65";
+    requestAnimationFrame(() => { caretEl.style.opacity = ""; });
+  }
 }
 function refreshActiveWord() {
   const cur = wordsEl.querySelector(`[data-wi="${session.wordIndex}"]`);
@@ -215,7 +329,9 @@ function refreshActiveWord() {
     }
     cur.classList.add("active");
     cur.classList.toggle("error", [...typed].some((ch, i) => ch !== target[i]));
-    cur.scrollIntoView({ block: "center" });
+    // tape mode keeps the caret anchored via scrollLeft (updateCaret) instead;
+    // scrollIntoView would fight the anchor. Non-tape: v1 scroll behavior (B-UI-006).
+    if (!cfg.tapeMode) cur.scrollIntoView({ block: "center" });
   }
   updateCaret();
 }
@@ -289,7 +405,7 @@ wordsEl.addEventListener("keydown", (e) => {
 });
 
 function liveStats() {
-  if (!session.startT) return;
+  if (!session || !session.startT) return;
   const now = performance.now();
   const dur = (now - session.startT) / 1000;
   const c = session._charCounts();
@@ -300,6 +416,20 @@ function liveStats() {
     const left = Math.max(0, Number(session.mode2) - dur);
     timerEl.textContent = Math.ceil(left) + "s";
   }
+  // Live-stats region (delegated; toggles persist in user-config v1.2.0 —
+  // liveWpm/liveAcc/liveBurst, default false). Minimal display wiring: enabled
+  // toggles enrich the region; defaults keep the v1 compact line untouched.
+  const parts = [];
+  if (cfg.liveWpm) parts.push(`live ${wpmEl.textContent} wpm`);
+  if (cfg.liveAcc) parts.push(`acc ${accEl.textContent}%`);
+  if (cfg.liveBurst) parts.push(`burst ${liveBurstWpm(now)} wpm`);
+  $("livex").textContent = parts.length ? " · " + parts.join(" · ") : "";
+}
+// Burst = raw wpm over the trailing 1s of char events (same per-second bucket
+// basis as the engine's completion chartData burst series).
+function liveBurstWpm(now) {
+  const recent = session.events.filter((e) => e.type === "char" && now - e.t <= 1000).length;
+  return String(Math.round((recent / 5) * 60));
 }
 
 // ---------- finish ----------

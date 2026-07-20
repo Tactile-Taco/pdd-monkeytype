@@ -9,6 +9,7 @@ import { hashPassword, verifyPassword, issueToken, verifyToken, revokeToken } fr
 import { validateCompletedEvent, validateConfigUpdate, CONFIG_DEFAULTS, keyStats } from "./validate.js";
 import { evaluate } from "../anticheat/index.js";
 import { makeRvl } from "./rvl.js";
+import { THEMES, catalogList, findTheme, validateThemeShape, charterBandReport } from "../shared/themes.js";
 
 const NAME_RE = /^[a-zA-Z0-9_-]{3,16}$/;
 
@@ -111,6 +112,33 @@ export function createApp({ dataDir, implVersion = "unknown", ledgerDir = null, 
     if (!v.ok) return err(res, 422, "unprocessable", "invalid keys: " + v.badKeys.join(",")); // B-CFG-003 wholesale
     configs.commit((d) => { d[a.uid] = { ...(d[a.uid] ?? {}), ...req.body }; }); // B-CFG-002 merge
     res.json({ ...CONFIG_DEFAULTS, ...configs.read()[a.uid] });
+  });
+
+  // ---- theme-catalog (v1.0.0, read-only) ----
+  // Catalog admission (O-THM-003): every theme is re-checked STATICALLY at boot —
+  // charter shape (S-THM-001/002) + charter bands (pure color math, no browser).
+  // A failing theme aborts app construction: the candidate cannot ship it.
+  for (const t of THEMES) {
+    const shape = validateThemeShape(t);
+    const bands = charterBandReport(t.tokens);
+    if (!shape.ok || !bands.ok) {
+      throw new Error(`theme-catalog admission refused theme "${t?.name}": ` +
+        [...shape.errors, ...bands.clauses.filter((c) => !c.ok).map((c) => c.msg)].join("; "));
+    }
+  }
+  // Byte-determinism within a deploy (B-THM-003): payloads serialized once.
+  const CATALOG_LIST_PAYLOAD = JSON.stringify({ themes: catalogList() });
+  const THEME_PAYLOADS = new Map(THEMES.map((t) => [t.name, JSON.stringify(t)]));
+  const json = (res, status, payload) => {
+    res.status(status).type("application/json; charset=utf-8").send(payload);
+  };
+  // O-THM-001: unauthenticated, zero store writes, served from bundled data.
+  app.get("/api/themes", (req, res) => json(res, 200, CATALOG_LIST_PAYLOAD));
+  app.get("/api/themes/:name", (req, res) => {
+    const payload = THEME_PAYLOADS.get(req.params.name);
+    // B-THM-002: unknown name -> ErrorEnvelope(not_found); never substitution.
+    if (!payload) return err(res, 404, "not_found", "unknown theme");
+    json(res, 200, payload);
   });
 
   // ---- quote-library ----

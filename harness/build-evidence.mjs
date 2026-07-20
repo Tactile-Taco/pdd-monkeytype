@@ -70,7 +70,7 @@ function appliesTo(invariantId, proto) {
   const PFX = { "user-account": ["ACC"], "user-config": ["CFG"], "quote-library": ["QT"],
                 "test-results": ["RES"], "leaderboards": ["LB"],
                 "typing-test-engine": ["ENG"], "result-anticheat": ["AC"],
-                "ui-presentation": ["UI"] };
+                "ui-presentation": ["UI"], "theme-catalog": ["THM"] };
   const pfx = PFX[proto] ?? [];
   return pfx.some((p) => invariantId.includes(`-${p}-`)) ||
          (proto === "typing-test-engine" && invariantId.startsWith("O-ENG")) ||

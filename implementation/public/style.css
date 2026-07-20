@@ -1,9 +1,11 @@
-/* ui-presentation v1.0.0 — sealed token charter (S-UI-004).
-   Token NAMES are sealed; VALUES are delegated within the O-UI-001..O-UI-003 bands.
-   Default dark theme = reference palette, with one band-driven adjustment:
-   --error lifted #ca4754 -> #cf5763 (same hue 354/sat 0.55): the reference value
-   measures 2.70:1 on --bg, below the sealed 3.0 large-text floor (O-UI-001);
-   the floor is the adjudicated persistent intent, token values are delegated. */
+/* ui-presentation v2.0.0 — sealed token charter (S-UI-004): NINE slots.
+   Token NAMES are sealed (additive growth only); VALUES are delegated within the
+   O-UI-001..O-UI-003 bands and set by theme resolution (B-UI-005): the values
+   below are the default dark theme (== catalog "serika_dark", the fail-closed
+   fallback). v2.0.0 adds --sub-alt and --colorful-error per C2/round-4.
+   Default palette history: --error lifted #ca4754 -> #cf5763 (same hue/sat):
+   the reference value measures 2.70:1 on --bg, below the sealed 3.0 large-text
+   floor (O-UI-001); the floor is the adjudicated persistent intent. */
 :root {
   color-scheme: dark;
   --bg: #323437;
@@ -13,7 +15,19 @@
   --sub: #646669;
   --error: #cf5763;
   --error-extra: #7e2a33;
+  --sub-alt: #2c2e31;         /* chrome surfaces (previously hardcoded #2c2e31) */
+  --colorful-error: #ff4655;  /* consumed only under colorfulError (B-UI-010(b)) */
+  /* Derived ROLE vars (NOT charter slots): the flip/colorful display modes
+     re-point these; the sealed slots above are only ever set by theme resolution
+     (B-UI-005: applying a theme changes token values, never structure). */
+  --surface: var(--bg);       /* stream-area background role */
+  --ink: var(--text);         /* typed-correct letter role */
+  --colorful-error-extra: var(--colorful-error); /* JS derives: same h/s, lower l */
 }
+/* flipTestColors (B-UI-010(a)): text-role and bg-role tokens swapped for the
+   word stream — letters derive from --bg, stream-area background from --text.
+   Contrast holds by WCAG symmetry; dark-family band is gated off per O-UI-002(i). */
+body.flip { --surface: var(--text); --ink: var(--bg); }
 * { box-sizing: border-box; }
 body { margin: 0; font-family: ui-monospace, "Cascadia Mono", Menlo, monospace;
   background: var(--bg); color: var(--text); min-height: 100vh; }
@@ -21,33 +35,63 @@ header { display: flex; justify-content: space-between; align-items: center;
   padding: 1rem 2rem; }
 h1 { font-size: 1.2rem; color: var(--main); margin: 0; }
 nav { display: flex; gap: .5rem; align-items: center; }
-button, select { background: #2c2e31; color: var(--text); border: none; border-radius: 4px;
+button, select { background: var(--sub-alt); color: var(--text); border: none; border-radius: 4px;
   padding: .4rem .8rem; font: inherit; cursor: pointer; }
 button:hover { color: var(--main); }
 main { max-width: 900px; margin: 4rem auto; padding: 0 1rem; }
 #stats { font-size: 1.1rem; color: var(--main); margin-bottom: 1rem; min-height: 1.5em; }
-/* Word stream: 1.6rem = 25.6px computed letters (>= 24px large-text floor, O-UI-001). */
+/* Word stream: 1.6rem = 25.6px computed letters (>= 24px large-text floor, O-UI-001).
+   Stream-area background uses the (flippable) surface role; default == --bg. */
 #words { font-size: 1.6rem; line-height: 2.4rem; outline: none; display: flex;
-  flex-wrap: wrap; gap: .6rem; cursor: text; position: relative; }
+  flex-wrap: wrap; gap: .6rem; cursor: text; position: relative;
+  background: var(--surface); }
 .word { border-bottom: 2px solid transparent; }
 .word.active { border-bottom-color: var(--main); }
 .word.error { border-bottom-color: var(--error); }
-/* Letter state classes (S-UI-002 sealed vocabulary); untyped has no state class. */
+/* Tape mode (B-UI-008): single horizontal line; JS translates the stream
+   (scrollLeft) so the caret's viewport X stays anchored. 30% left padding keeps
+   the anchor reachable from the first keystroke (fixity sealed, location delegated). */
+/* 30% left padding keeps the anchor reachable from the first keystroke; 70%
+   right padding keeps max-scroll sufficient to hold the anchor through the LAST
+   keystroke (fixity sealed, locations delegated). */
+#words.tape { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none;
+  padding-left: 30%; padding-right: 70%; }
+#words.tape::-webkit-scrollbar { display: none; }
+#words.tape .word { flex: none; }
+/* Letter state classes (S-UI-002 sealed vocabulary); untyped has no state class.
+   Correct letters use the (flippable) ink role; default == --text. */
 .c { color: var(--sub); }
-.c.correct { color: var(--text); }
+.c.correct { color: var(--ink); }
 .c.incorrect { color: var(--error); }
 .c.extra { color: var(--error-extra); }
-/* Caret (B-UI-001): positioned by JS at (wordIndex, n); shape/blink delegated —
-   shipped solid (no blink) so every visibility sample passes. */
+/* colorfulError (B-UI-010(b)): incorrect/extra in high-saturation error variants
+   sourced from --colorful-error (extra: derived darker variant, hue/s kept). */
+body.colorful .c.incorrect { color: var(--colorful-error); }
+body.colorful .c.extra { color: var(--colorful-error-extra); }
+/* Blind mode (B-UI-007): incorrect/extra render IDENTICAL to correct — hiding is
+   presentational only; state classes keep the true engine state. Higher
+   specificity than the colorful rules so blind wins the composition. */
+#words.blind .c.incorrect, #words.blind .c.extra { color: var(--ink); }
+/* Caret (B-UI-001): positioned by JS at (wordIndex, n). caretStyle is delegated
+   cosmetics; every style keeps its LEFT edge at the tracked insertion boundary
+   and its vertical span on the active line box. */
 #caret { position: absolute; left: 0; top: 0; width: 3px; height: 2.4rem;
   background: var(--caret); border-radius: 1.5px; pointer-events: none; z-index: 1; }
+#caret.block { width: 0.65em; border-radius: 2px; opacity: 0.55; }
+#caret.outline { width: 0.65em; background: transparent; border: 2px solid var(--caret);
+  border-radius: 2px; opacity: 0.9; }
+#caret.underline { width: 0.65em; height: 3px; border-radius: 1.5px; }
+#caret.off { opacity: 0; }
+/* smoothCaret: fade-ease on position updates (positional slide would violate the
+   sealed ±2px-per-keystroke tracking at the sealed default — see ui-v2-report). */
+#caret.smooth { transition: opacity 100ms ease-out; }
 #hint { color: var(--sub); font-size: .85rem; }
 #resultStats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem;
   font-size: 1.4rem; margin: 1rem 0; }
 #resultStats small { display: block; font-size: .8rem; color: var(--sub); }
 table { width: 100%; border-collapse: collapse; }
-td, th { text-align: left; padding: .4rem .6rem; border-bottom: 1px solid #2c2e31; }
-dialog { background: #2c2e31; color: inherit; border: none; border-radius: 8px; padding: 1.5rem; }
+td, th { text-align: left; padding: .4rem .6rem; border-bottom: 1px solid var(--sub-alt); }
+dialog { background: var(--sub-alt); color: inherit; border: none; border-radius: 8px; padding: 1.5rem; }
 dialog input { display: block; margin: .5rem 0; padding: .5rem; background: var(--bg);
   border: none; color: inherit; border-radius: 4px; }
 #saveStatus { color: var(--sub); margin: .5rem 0; }

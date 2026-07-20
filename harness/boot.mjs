@@ -26,11 +26,13 @@ export async function bootApp({ ledgerDir = null, heartbeatMs } = {}) {
   return { base, call, signup, close: () => server.close(), dataDir, app };
 }
 
-// Harness-side oracle of the SEALED user-config v1.1.1 defaults (24 keys),
+// Harness-side oracle of the SEALED user-config v1.2.0 defaults (37 keys),
 // transcribed from protocols/user-config/ambiguity-log.md (v1.0.0 defaults +
 // batch-1 keys; fontSize: 0 = unset/client default per the v1.1.1 PATCH,
-// BQ-IMPL-01). Validators compare the candidate's effective config against
-// this table — deliberately independent of implementation/src/server/validate.js.
+// BQ-IMPL-01; batch-2 adds 14 keys and REMOVES customThemeId per round-4 ruling
+// BQ-CFG-01 — a stored config carrying it now rejects on PUT, intended).
+// Validators compare the candidate's effective config against this table —
+// deliberately independent of implementation/src/server/validate.js.
 export const SEALED_CONFIG_DEFAULTS = {
   mode: "time", mode2: "30", language: "english", punctuation: false,
   numbers: false, difficulty: "normal", blindMode: false, stopOnError: "off",
@@ -39,8 +41,13 @@ export const SEALED_CONFIG_DEFAULTS = {
   oppositeShift: false, minWpm: 0, minAcc: 0,
   fontFamily: "", fontSize: 0, tapeMode: false,
   quickRestart: "tab", flipTestColors: false, colorfulError: false,
-  customThemeId: "", randomTheme: false,
-}; // 24 keys
+  randomTheme: false,
+  customThemeBg: "", customThemeMain: "", customThemeCaret: "",
+  customThemeSub: "", customThemeSubAlt: "", customThemeText: "",
+  customThemeError: "", customThemeErrorExtra: "", customThemeColorfulError: "",
+  caretStyle: "line", smoothCaret: true,
+  liveWpm: false, liveAcc: false, liveBurst: false,
+}; // 37 keys
 
 // A deterministic, protocol-valid completion event generator for tests.
 export function makeEvent(over = {}) {

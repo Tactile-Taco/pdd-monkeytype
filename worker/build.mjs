@@ -37,8 +37,10 @@ import { scryptSync, randomBytes, createHmac, timingSafeEqual, randomUUID } from
 
 for (const [label, rel] of [
   ["shared/stats.js", "src/shared/stats.js"],
+  ["engine/lazy.js", "src/engine/lazy.js"],
   ["engine/countChars.js", "src/engine/countChars.js"],
   ["engine/words.js", "src/engine/words.js"],
+  ["engine/wordlist.js", "src/engine/wordlist.js"],
   ["engine/session.js", "src/engine/session.js"],
   ["anticheat/index.js", "src/anticheat/index.js"],
   ["server/validate.js", "src/server/validate.js"],
@@ -67,7 +69,9 @@ const assets = {
   "/app.js": text(join(impl, "public/app.js"), "text/javascript; charset=utf-8"),
   "/engine/session.js": text(join(impl, "src/engine/session.js"), "text/javascript; charset=utf-8"),
   "/engine/countChars.js": text(join(impl, "src/engine/countChars.js"), "text/javascript; charset=utf-8"),
+  "/engine/lazy.js": text(join(impl, "src/engine/lazy.js"), "text/javascript; charset=utf-8"),
   "/engine/words.js": text(join(impl, "src/engine/words.js"), "text/javascript; charset=utf-8"),
+  "/engine/wordlist.js": text(join(impl, "src/engine/wordlist.js"), "text/javascript; charset=utf-8"),
   "/shared/stats.js": text(join(impl, "src/shared/stats.js"), "text/javascript; charset=utf-8"),
 };
 

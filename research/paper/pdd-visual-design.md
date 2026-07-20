@@ -80,7 +80,7 @@ The system demonstrates protocol-level substitutability: two candidate implement
 
 The first hypothesis concerns the shape of the contract itself (`/mnt/agents/work/plan-ui-research.md`):
 
-> **H1.** A two-tier contract — (i) sealed, machine-checkable presentation invariants (DOM-structural assertions; behavioral coupling to engine handshakes; computed-style constraints such as WCAG contrast floors) plus (ii) a bounded design-token charter (named tokens with tolerance bands, not exact values) — can carry persistent visual intent through PDD while transient cosmetics stay delegated to implementer latitude.
+> **H1.** A two-tier contract — (i) sealed, machine-checkable presentation invariants (DOM-structural assertions; behavioral coupling to engine handshakes; computed-style constraints such as WCAG contrast) plus (ii) a bounded design-token charter (named tokens with tolerance bands, not exact values) — can carry persistent visual intent through PDD while transient cosmetics stay delegated to implementer latitude.
 
 #### 3.1.1 Tier 1: machine-checkable presentation invariants
 

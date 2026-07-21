@@ -211,6 +211,15 @@
           }
         }
       }
+    },
+    "minThresholdFailed": {
+      "type": "boolean"
+    },
+    "unit": {
+      "enum": [
+        "seconds",
+        "words"
+      ]
     }
   },
   "additionalProperties": true

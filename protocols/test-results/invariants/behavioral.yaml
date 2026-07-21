@@ -1,11 +1,15 @@
 invariants:
   - id: B-RES-001
     statement: >
-      A result is stored only when the anticheat verdict is admit; rejected results return unprocessable with reason codes and are never persisted.
+      A result is stored only when the anticheat verdict is admit; rejected results return unprocessable with reason codes and are never persisted. Storage disposition (v1.2.0): a submission with mode=zen is NOT persisted even when admitted — the response carries the admission verdict with a non-stored indicator, no record is written, repeated zen submissions never create records, and history reads never contain mode=zen. A result with minThresholdFailed=true IS persisted (flag stored on the record) and remains visible in history.
     severity: must
     rationale: >
-      Protocol requirement.
-    property: "stored(r) => anticheat(r).decision == 'admit'"
+      Protocol requirement. v1.2.0: zen non-persistence sealed per
+      orchestrator ruling (BQ-ENG-06 follow-through; reference [verify]: zen
+      results are not saved to history by default — an opt-in override, if
+      the reference has one, would arrive as an additive user-config key in a
+      later batch). minThresholdFailed adopted from engine v2 per C6.
+    property: "stored(r) <=> anticheat(r).decision == 'admit' && r.mode != 'zen'"
     validation:
       - contract-tests
       - property-check
@@ -21,10 +25,14 @@ invariants:
       - contract-tests
   - id: B-RES-003
     statement: >
-      A stored result with wpm strictly greater than the current PB for its tuple (mode, mode2, language, punctuation, numbers) becomes the new PB (isPb=true) and demotes the prior PB.
+      A stored result with wpm strictly greater than the current PB for its tuple (mode, mode2, language, punctuation, numbers) — the PB keying tuple, sealed explicitly per C7 — becomes the new PB (isPb=true) and demotes the prior PB. Exclusions (v1.2.0): a result with minThresholdFailed=true never becomes a PB (isPb stays false, no demotion) and is excluded from PB reads; bailed-out results per B-RES-004.
     severity: must
     rationale: >
-      Protocol requirement.
+      Protocol requirement. v1.2.0: tuple sealed verbatim per C7 ruling
+      (unchanged from v1.1.0 behavior — the explicit seal forecloses drift);
+      min-threshold exclusion per C6 (flag production is engine-side,
+      B-ENG-010). Leaderboard exclusion of flagged results is consumer-side —
+      recorded for leaderboards 1.1.0 (B-LB-001 eligibility amendment).
     validation:
       - property-check
   - id: B-RES-004
@@ -43,3 +51,31 @@ invariants:
       Protocol requirement.
     validation:
       - contract-tests
+  - id: B-RES-006
+    statement: >
+      Result tags (composite): (a) tag CRUD — the authenticated user creates,
+      renames, and deletes own tags (objects conforming to
+      schemas/tag.schema.json); tag names are unique per user
+      case-insensitively [verify reference rule at implementation];
+      (b) assignment — tags are assigned to / removed from own stored
+      results only; assigning an unknown or foreign tag fails with the error
+      envelope; (c) filter — history reads accept an optional tag filter and
+      return only results carrying the filter tag (multi-tag filter =
+      intersection [verify at implementation]); (d) delete-cascade —
+      deleting a tag removes it from every result carrying it, results
+      themselves unaffected; (e) tag-scoped PB read — PB queries accept an
+      optional tag filter returning the best result per C7 tuple among own
+      results carrying the tag; this scoped read NEVER creates, mutates, or
+      demotes isPb flags (PB keying stays the global C7 tuple per B-RES-003).
+    severity: must
+    rationale: >
+      v1.2.0 addition (brownfield D5a). Composite shape per marginal-must
+      discipline. C7 tag interaction [verify at implementation]: scoped PB
+      is sealed as a READ-TIME derivation, not a second PB keying — if the
+      reference keys PBs per tag instead, that is behavior-changing and
+      returns to negotiation before adoption.
+    property: "scopedPb(u, tag, tuple) == max wpm of {r in stored(u) | tag in r.tags && tupleOf(r) == tuple}; isPb unchanged by scoped reads"
+    validation:
+      - contract-tests
+      - property-check
+      - schema-conformance

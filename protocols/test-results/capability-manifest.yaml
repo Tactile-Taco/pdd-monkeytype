@@ -4,7 +4,7 @@ capabilities:
     deny_other_outbound: true
   filesystem:
     read: []
-    write: [data/results.json]
+    write: [data/results.json, data/tags.json]
   database:
     max_writes_per_request: 2
   dependencies:

@@ -53,3 +53,14 @@ Adjudicated: C1/C2 rulings in research/brownfield/roadmap-orchestrator-r2.md.
   admitted v2.0.0-conformant candidate (deploy line v3.0) within this event
   window, same host-pinning rules; CI recaptures per-run.
 - Open at sealing: none.
+
+## Watch items (for next minor; non-blocking)
+- B-UI-008 fixity wording (from validation, orchestrator relay): the
+  invariant pins caret viewport-X FIXITY (±2px across keystrokes) — two
+  readings coexist: absolute-fixed (caret never moves; stream does all the
+  work) vs anchored-regime (caret fixed in the tape scroll regime; word-
+  internal micro-movement permitted). The current candidate satisfies BOTH,
+  so no conformance risk now; clarify the intended reading at the next
+  ui-presentation minor to keep future candidates pinned to one regime.
+  [criticality: cosmetic today; potentially behavior-changing for a future
+  candidate — hence watch-listed, not silently edited]

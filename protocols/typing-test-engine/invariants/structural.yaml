@@ -33,8 +33,11 @@ invariants:
     rationale: >
       v2.0.0 addition. Formalizes the pre-existing injection point (O-ENG-003:
       pure computation over injected word lists) as the abstract wordlist
-      handshake. Internal lists remain the default provider; the wordlists
-      bundle (roadmap D3) plugs in as a provider with no engine re-versioning.
+      handshake. v2.0.1 (additive metadata patch, round-5 BQ-WL-02): the
+      internal default provider is RETIRED — the english list migrated into
+      the wordlists bundle's assets as the builtin package (single authority;
+      boot admission fail-closed there, B-WL-001); `consumes` gained
+      wordlist: wordlists. No invariant text changed.
     validation:
       - schema-conformance
       - contract-tests

@@ -60,9 +60,11 @@ mode semantics annex, 2026-07-20).
   client-side), event under mode=zen with bailedOut=true per round-3 ruling
   BQ-ENG-06; whether zen results persist is a test-results 1.2.0 consumer
   decision [verify at that authoring].
-- Wordlist handshake (S-ENG-004): abstract provider; internal lists remain
-  default; wordlists bundle (D3) will be added to `consumes` at its authoring
-  (additive metadata minor). [adjudicated roadmap]
+- Wordlist handshake (S-ENG-004): abstract provider. v2.0.1 (round-5 ruling
+  BQ-WL-02): internal default provider RETIRED — english list migrated to
+  the wordlists bundle as the builtin package; `consumes` gained
+  wordlist: wordlists (additive metadata patch; no invariant text changed).
+  [adjudicated roadmap + round-5]
 - Keystroke schema extensions: type=navigate with absolute wordIndex/
   charIndex target (freedom mode) — shape APPROVED per round-3 ruling
   BQ-ENG-02; optional shift field kept as evidence plumbing (BQ-ENG-03).

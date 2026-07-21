@@ -1,6 +1,6 @@
 protocol:
   name: typing-test-engine
-  version: 2.0.0
+  version: 2.0.1
   status: sealed
 purpose: >
   Client-side typing test session: word stream generation, keystroke-level input
@@ -26,12 +26,13 @@ boundary:
     - Rendering/visual presentation (incl. blind-mode error hiding, tape scroll),
       sound, theme application, quick-restart key routing, persistence of results
     - Wordlist provision/catalog (wordlists bundle consumes the handshake as provider)
-depends_on: [user-config, quote-library]
+depends_on: [user-config, quote-library, wordlists]
 provides:
   completed-event: schemas/completed-event.schema.json
 consumes:
   user-config: user-config
   quote: quote-library
+  wordlist: wordlists
 handshakes:
   completed_event: schemas/completed-event.schema.json
   keystroke_event: schemas/keystroke-event.schema.json

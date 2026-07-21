@@ -1,19 +1,27 @@
 protocol:
   name: test-results
-  version: 1.1.0
+  version: 1.2.0
   status: sealed
 purpose: >
   Authenticated submission, admission, persistence, and read-back of typing-test
   results, including personal-best tracking and history queries. Results are
   admitted only through the result-anticheat verdict and stored per the
-  stored-result handshake consumed by leaderboards.
+  stored-result handshake consumed by leaderboards. v1.2.0 (additive MINOR,
+  brownfield D5a): adopts the engine v2 minThresholdFailed flag (stored,
+  visible in history, never PB, never leaderboard-eligible), seals zen
+  non-persistence (BQ-ENG-06 follow-through), and adds result tags
+  (create/assign/filter, tag-scoped PB queries) with the PB keying tuple
+  sealed explicitly per C7.
 boundary:
   in_scope:
     - POST result (auth + anticheat admission + idempotent store by client hash)
-    - Personal bests per (mode, mode2, language, punctuation, numbers)
+    - Storage disposition: zen non-persistence, min-threshold flag persistence
+    - Personal bests per (mode, mode2, language, punctuation, numbers) — tuple sealed per C7
+    - Result tags: create/rename/delete, assign/unassign, history filter, tag-scoped PB read
     - History and PB read for the authenticated user
   out_of_scope:
-    - Result deletion/gdpr flows, tags CRUD, leaderboard computation itself
+    - Result deletion/gdpr flows, leaderboard computation itself
+    - Aggregate statistics/series derivation (result-stats bundle)
 depends_on: [user-account, result-anticheat, typing-test-engine]
 provides:
   stored-result: schemas/stored-result.schema.json

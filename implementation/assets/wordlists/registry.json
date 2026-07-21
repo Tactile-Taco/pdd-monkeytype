@@ -1,0 +1,10 @@
+{
+  "lists": [
+    { "id": "english", "name": "English", "language": "english", "tier": "200" },
+    { "id": "spanish", "name": "Spanish", "language": "spanish", "tier": "60" },
+    { "id": "french", "name": "French", "language": "french", "tier": "60" },
+    { "id": "german", "name": "German", "language": "german", "tier": "60" },
+    { "id": "italian", "name": "Italian", "language": "italian", "tier": "60" },
+    { "id": "portuguese", "name": "Portuguese", "language": "portuguese", "tier": "60" }
+  ]
+}

@@ -2,6 +2,7 @@
 // The engine performs no I/O (O-ENG-001); this shell owns all network/DOM work.
 import { TypingSession } from "/engine/session.js";
 import { internalWordlist } from "/engine/wordlist.js";
+import { generateWords, decorateWords, mulberry32 } from "/engine/words.js";
 import { round2, calculateWpm } from "/shared/stats.js";
 import { DEFAULT_THEME, THEME_SLOTS, customSlotsToTokens, validateThemeShape,
          deriveColorfulExtra } from "/shared/themes.js";
@@ -17,7 +18,21 @@ caretEl.id = "caret";
 caretEl.setAttribute("aria-hidden", "true");
 
 let token = localStorage.getItem("pdd_token") || null;
-let session = null, targetWords = [], ticker = null;
+let session = null, targetWords = [], ticker = null, sessionWordlist = null;
+
+// Wordlists v1.0.0: same-origin static reads of the bundle's assets (S-WL-003),
+// cached per deploy (contents byte-stable within a deploy — B-WL-002).
+const wlAssetCache = new Map();
+async function fetchWordlistAsset(id) {
+  if (wlAssetCache.has(id)) return wlAssetCache.get(id);
+  let asset = null;
+  try {
+    const r = await fetch("/wordlists/" + encodeURIComponent(id) + ".json");
+    if (r.ok) asset = await r.json();
+  } catch { /* network failure -> fallback path (logged delegation) */ }
+  wlAssetCache.set(id, asset);
+  return asset;
+}
 
 // ---------- auth ----------
 async function api(path, opts = {}) {
@@ -203,6 +218,7 @@ async function newTest() {
   // this is the atomicity point for randomTheme (B-UI-011).
   await applyThemeResolved();
   const mode = $("mode").value, mode2 = currentMode2();
+  sessionWordlist = null; // only the wordlists-asset branch sets a handshake list
   if (mode === "quote") {
     const r = await api("/api/quotes/random?language=english");
     if (r.status !== 200) { alert("no quotes"); return; }
@@ -210,16 +226,28 @@ async function newTest() {
   } else if (mode === "zen") {
     targetWords = [" ".repeat(1000)]; // freeform
   } else {
-    // internal default wordlist provider (S-ENG-004) with generation decoration
-    // (B-ENG-009): punctuation/numbers from the effective config.
+    // Wordlists bundle v1.0.0 (engine v2.0.1, BQ-WL-02): the engine consumes the
+    // wordlists bundle's static assets via the S-ENG-004 handshake — the internal
+    // default provider is RETIRED as the runtime source (kept only as an offline
+    // fallback). Stream generation + decoration stay engine-side (B-ENG-006/009).
     const unit = customUnit();
     const n = mode === "words" || (mode === "custom" && unit === "words") ? Number(mode2) : 200;
-    targetWords = internalWordlist({ language: cfg.language, count: n,
-      seed: Math.floor(Math.random() * 1e9),
-      punctuation: !!cfg.punctuation, numbers: !!cfg.numbers }).words;
+    const seed = Math.floor(Math.random() * 1e9);
+    const asset = await fetchWordlistAsset(cfg.language);
+    if (asset) {
+      const base = generateWords(n, seed, asset.words);
+      const rnd = mulberry32(((seed ^ 0x9e3779b9) >>> 0) || 1); // same derivation as the retired provider
+      targetWords = decorateWords(base, rnd, { punctuation: !!cfg.punctuation, numbers: !!cfg.numbers });
+      sessionWordlist = { id: asset.id ?? asset.language, language: asset.language, words: targetWords };
+    } else {
+      // Offline/degraded fallback ONLY (logged delegation): retired internal provider.
+      targetWords = internalWordlist({ language: cfg.language, count: n, seed,
+        punctuation: !!cfg.punctuation, numbers: !!cfg.numbers }).words;
+      sessionWordlist = null;
+    }
   }
   try {
-    session = new TypingSession({ mode, mode2, words: targetWords, config: {
+    session = new TypingSession({ mode, mode2, ...(sessionWordlist ? { wordlist: sessionWordlist } : { words: targetWords }), config: {
       language: cfg.language, punctuation: !!cfg.punctuation, numbers: !!cfg.numbers,
       blindMode: !!cfg.blindMode, stopOnError: cfg.stopOnError, lazyMode: !!cfg.lazyMode,
       confidenceMode: !!cfg.confidenceMode, freedomMode: !!cfg.freedomMode,

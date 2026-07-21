@@ -33,6 +33,10 @@ export function validateCompletedEvent(e) {
   req(typeof e.punctuation === "boolean" && typeof e.numbers === "boolean", "flags bool");
   req(typeof e.hash === "string" && e.hash.length <= 100, "hash <= 100 chars");
   req(Array.isArray(e.incompleteTests), "incompleteTests array");
+  // engine v2 optional fields (completed-event schema v1.2.0: additionalProperties
+  // admits them, but a PRESENT field with a wrong type fails the sealed schema).
+  if (e.minThresholdFailed !== undefined) req(typeof e.minThresholdFailed === "boolean", "minThresholdFailed bool");
+  if (e.unit !== undefined) req(["seconds", "words"].includes(e.unit), "unit enum seconds|words");
   return errs;
 }
 

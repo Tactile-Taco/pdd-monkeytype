@@ -1,0 +1,12 @@
+{
+  "id": "german",
+  "language": "german",
+  "words": [
+    "der", "die", "und", "in", "den", "von", "zu", "das", "mit", "sich",
+    "des", "auf", "für", "ist", "im", "dem", "nicht", "ein", "eine", "als",
+    "auch", "es", "an", "werden", "aus", "er", "hat", "dass", "sie", "nach",
+    "wird", "bei", "einer", "um", "am", "sind", "noch", "wie", "einem", "über",
+    "einen", "so", "zum", "war", "haben", "nur", "oder", "aber", "vor", "zur",
+    "bis", "mehr", "durch", "man", "sein", "wenn", "was", "alle", "kann", "zeit"
+  ]
+}

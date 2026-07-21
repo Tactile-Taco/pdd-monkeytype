@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Language registry — list-level entries",
+  "description": "Round-5 ruling (BQ-WL-01): registry entries are individual lists (english_1k-style ids) carrying language+tier metadata; no second dimension table.",
+  "type": "object",
+  "required": [
+    "lists"
+  ],
+  "properties": {
+    "lists": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "language"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "language": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64
+          },
+          "tier": {
+            "type": "string",
+            "maxLength": 32
+          }
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": false
+}

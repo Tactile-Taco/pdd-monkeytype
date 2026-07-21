@@ -1,0 +1,18 @@
+capabilities:
+  network:
+    outbound_allowlist: []
+    deny_other_outbound: true
+  filesystem:
+    read: [assets/wordlists/]
+    write: []
+  database:
+    max_writes_per_request: 0
+  dependencies:
+    allow: [express]
+  resources:
+    max_latency_ms_p95: 50
+    max_memory_mb: 64
+  secrets:
+    allow: []
+  background_work:
+    allowed: false

@@ -1,0 +1,20 @@
+invariants:
+  - id: O-WL-001
+    statement: >
+      Zero store writes and no outbound network on reads; assets are bundled
+      data served statically.
+    severity: must
+    rationale: >
+      Static data posture (theme-catalog precedent); both server candidates
+      admitted.
+    validation:
+      - egress-monitor
+      - contract-tests
+  - id: O-WL-002
+    statement: >
+      Asset read p95 latency <= 50ms.
+    severity: must
+    rationale: >
+      Static delivery; mirrors the user-config/theme-catalog latency posture.
+    validation:
+      - resource-budget

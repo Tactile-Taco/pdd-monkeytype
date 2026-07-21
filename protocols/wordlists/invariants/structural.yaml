@@ -1,0 +1,44 @@
+invariants:
+  - id: S-WL-001
+    statement: >
+      Every wordlist asset conforms to the engine's wordlist handshake schema
+      (../typing-test-engine/schemas/wordlist.schema.json): a language field
+      and a non-empty words array of non-empty strings.
+    severity: must
+    rationale: >
+      The handshake is owned by typing-test-engine (S-ENG-004) and referenced
+      here per fork rule (never redefined). This bundle is the provider the
+      abstract handshake was sealed for.
+    validation:
+      - schema-conformance
+  - id: S-WL-002
+    statement: >
+      The registry conforms to schemas/language-registry.schema.json:
+      entries are individual LISTS (list-level ids, english_1k-style)
+      carrying language + optional tier metadata — no second dimension
+      table. The registry is referentially closed: every entry resolves to
+      exactly one conformant wordlist asset whose language field equals the
+      entry's id, and every served wordlist asset is named by an entry.
+    severity: must
+    rationale: >
+      Round-5 ruling (BQ-WL-01): list-level ids approved — matches reference
+      addressing and the wordlist handshake's language field directly.
+      Closure keeps client language selection total: no dead entries, no
+      orphan lists. Starter set ~6 lists as data; full ~60-language import
+      is a delegated data task.
+    validation:
+      - schema-conformance
+      - contract-tests
+  - id: S-WL-003
+    statement: >
+      Registry and wordlist assets are served as same-origin static files;
+      reads are public (no authentication) and failures return the
+      ErrorEnvelope schema.
+    severity: must
+    rationale: >
+      Reference wordlists are public static assets; same-origin delivery
+      preserves the O-UI-006 posture of the client and Workers
+      substitutability.
+    validation:
+      - contract-tests
+      - request-audit

@@ -1,0 +1,28 @@
+invariants:
+  - id: B-WL-001
+    statement: >
+      Boot admission is fail-closed: a deploy whose registry or any wordlist
+      asset fails S-WL-001..S-WL-003 conformance is rejected at boot/build
+      time — the server does not start serving a non-conforming catalog.
+    severity: must
+    rationale: >
+      Mirrors the engine's fail-closed injection (S-ENG-004): a bad list
+      must be impossible to ship, not merely rejected per-request. Validated
+      by a boot-time conformance sweep over all assets (cheap: schema checks
+      over static files).
+    property: "exists invalid asset => boot fails"
+    validation:
+      - contract-tests
+      - schema-conformance
+  - id: B-WL-002
+    statement: >
+      Reads are deterministic within a deploy: identical requests in the same
+      deployed version return byte-identical payloads. Contents MAY differ
+      across deploys (list growth is a data task).
+    severity: must
+    rationale: >
+      Same determinism posture as theme-catalog (B-THM-003): reproducible
+      validators, transient contents.
+    property: "read(); read() => identical bytes"
+    validation:
+      - contract-tests

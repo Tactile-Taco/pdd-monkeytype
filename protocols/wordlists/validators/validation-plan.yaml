@@ -1,0 +1,6 @@
+validation_plan:
+  layers: [structural, behavioral, operational]
+  admission_rule: all `must` invariants pass; zero open mutation-suspect flags
+  property_runs_default: 200
+  property_runs_nightly: 5000
+  coverage_gate: { line: 80, branch: 70 }

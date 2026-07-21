@@ -1,0 +1,38 @@
+protocol:
+  name: wordlists
+  version: 1.0.0
+  status: sealed
+purpose: >
+  Language registry and wordlist data assets consumed by typing-test-engine
+  via the abstract wordlist handshake (S-ENG-004). This bundle is the
+  pluggable provider the engine v2.0.0 handshake was sealed for: a registry
+  of languages plus wordlist assets conforming to the engine's
+  wordlist.schema.json, admitted fail-closed at boot. Ships ~6 starter
+  languages as data this iteration; the full ~60-language import is a DATA
+  task, not a protocol change.
+boundary:
+  in_scope:
+    - Language registry read (id, name per language)
+    - Wordlist asset delivery conforming to the engine wordlist handshake
+    - Boot-time admission: non-conforming assets reject the deploy
+    - Referential closure (registry entries resolve to lists; lists name registered languages)
+  out_of_scope:
+    - Wordlist contents/curation, size tiers, quote texts (delegated data)
+    - Stream generation/decoration (typing-test-engine)
+    - Quote corpus (quote-library), lazy-mode equivalence tables (engine config)
+depends_on: []
+provides:
+  wordlist: ../typing-test-engine/schemas/wordlist.schema.json
+  language-registry: schemas/language-registry.schema.json
+consumes: {}
+handshakes:
+  wordlist: ../typing-test-engine/schemas/wordlist.schema.json
+  language_registry: schemas/language-registry.schema.json
+  error: schemas/error.schema.json
+invariants:
+  structural: invariants/structural.yaml
+  behavioral: invariants/behavioral.yaml
+  operational: invariants/operational.yaml
+capabilities: capability-manifest.yaml
+validators: validators/validation-plan.yaml
+evidence: evidence-requirements.yaml

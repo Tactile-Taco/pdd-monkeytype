@@ -1,0 +1,29 @@
+invariants:
+  - id: S-STS-001
+    statement: >
+      Every read response conforms to its handshake schema (aggregates,
+      pb_table, activity, wpm_series).
+    severity: must
+    rationale: >
+      Protocol requirement.
+    validation:
+      - schema-conformance
+      - contract-tests
+  - id: S-STS-002
+    statement: >
+      All failures return the ErrorEnvelope schema.
+    severity: must
+    rationale: >
+      Protocol requirement.
+    validation:
+      - contract-tests
+  - id: S-STS-003
+    statement: >
+      Every read requires authentication and returns only the requester's own
+      data; unauthenticated reads return unauthorized before any computation.
+    severity: must
+    rationale: >
+      Protocol requirement (own-data-only scoping; no cross-user surface in
+      this bundle).
+    validation:
+      - contract-tests

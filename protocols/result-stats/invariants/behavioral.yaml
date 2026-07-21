@@ -1,0 +1,38 @@
+invariants:
+  - id: B-STS-001
+    statement: >
+      Determinism: identical store state produces byte-identical read
+      responses for every handshake.
+    severity: must
+    rationale: >
+      Protocol requirement (derivations, not observations).
+    property: "read(s); read(s) => identical bytes"
+    validation:
+      - property-check
+      - contract-tests
+  - id: B-STS-002
+    statement: >
+      Recompute-consistency: against a fixture stored-result set, every
+      served value equals its documented recomputation formula —
+      per-(mode, mode2) testsCompleted = count of the user's stored results
+      in that (mode, mode2) pair; timeTypingSeconds = sum of testDuration
+      [round-5 ruling; verify at implementation whether the reference
+      subtracts afkDuration — a formula amendment if so]; avgWpm/avgAcc =
+      mean of wpm/acc over those results (0 when empty); the PB table carries exactly
+      one entry per sealed C7 tuple = the stored result flagged isPb for
+      that tuple (never a bailedOut or minThresholdFailed result);
+      activity buckets results by UTC calendar day of timestamp with counts
+      and duration sums; wpm-over-time lists (timestamp, wpm, acc)
+      chronologically ascending. Results with bailedOut or minThresholdFailed
+      are included in aggregates/activity/series unless a formula states
+      otherwise [verify reference inclusion rules at implementation; any
+      exclusion lands as a formula amendment, not silent filtering].
+    severity: must
+    rationale: >
+      The bundle's only job is faithful derivation; fixture-based
+      recomputation checks it deterministically without a browser or
+      production data. Formulas documented here are the contract; reference
+      divergences [verify] resolve pre-seal or as version events.
+    property: "serve(fixtures) == recompute(fixtures) for every formula"
+    validation:
+      - property-check

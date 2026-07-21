@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Personal-best table keyed by the C7 tuple",
+  "type": "object",
+  "required": [
+    "pbs"
+  ],
+  "properties": {
+    "pbs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "mode",
+          "mode2",
+          "language",
+          "punctuation",
+          "numbers",
+          "wpm",
+          "acc",
+          "timestamp"
+        ],
+        "properties": {
+          "mode": {
+            "enum": [
+              "time",
+              "words",
+              "quote",
+              "zen",
+              "custom"
+            ]
+          },
+          "mode2": {
+            "type": "string"
+          },
+          "language": {
+            "type": "string"
+          },
+          "punctuation": {
+            "type": "boolean"
+          },
+          "numbers": {
+            "type": "boolean"
+          },
+          "wpm": {
+            "type": "number",
+            "minimum": 0
+          },
+          "acc": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "timestamp": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

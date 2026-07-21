@@ -1,0 +1,39 @@
+protocol:
+  name: result-stats
+  version: 1.0.0
+  status: sealed
+purpose: >
+  Read-only derived statistics over a user's stored results: per-mode
+  aggregates (tests completed, time typing, average wpm/acc), the personal-
+  best table keyed by the sealed C7 tuple, activity/calendar series
+  (per-day counts), and wpm-over-time series. Pure derivation from the
+  stored-result handshake — no new facts, no writes, no leaderboard logic.
+boundary:
+  in_scope:
+    - Per-mode aggregate reads for the authenticated user
+    - PB table read keyed by (mode, mode2, language, punctuation, numbers)
+    - Activity series (UTC day buckets) and wpm-over-time series reads
+    - Deterministic recomputation of every served value from stored results
+  out_of_scope:
+    - Result storage, admission, tags, PB flag maintenance (test-results)
+    - Leaderboards, cross-user comparisons, percentile ranks
+    - Chart rendering (client), rolling-average variants beyond documented formulas
+depends_on: [test-results, user-account]
+provides:
+  result-stats: schemas/aggregates.schema.json
+consumes:
+  stored-result-reader: test-results
+  auth-token: user-account
+handshakes:
+  aggregates: schemas/aggregates.schema.json
+  pb_table: schemas/pb-table.schema.json
+  activity: schemas/activity.schema.json
+  wpm_series: schemas/wpm-series.schema.json
+  error: schemas/error.schema.json
+invariants:
+  structural: invariants/structural.yaml
+  behavioral: invariants/behavioral.yaml
+  operational: invariants/operational.yaml
+capabilities: capability-manifest.yaml
+validators: validators/validation-plan.yaml
+evidence: evidence-requirements.yaml

@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "wpm-over-time series (chronological)",
+  "type": "object",
+  "required": [
+    "series"
+  ],
+  "properties": {
+    "series": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "timestamp",
+          "wpm",
+          "acc"
+        ],
+        "properties": {
+          "timestamp": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "wpm": {
+            "type": "number",
+            "minimum": 0
+          },
+          "acc": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

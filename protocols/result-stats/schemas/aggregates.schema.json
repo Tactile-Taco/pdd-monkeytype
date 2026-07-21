@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Per-mode aggregates",
+  "type": "object",
+  "required": [
+    "modes"
+  ],
+  "properties": {
+    "modes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "mode",
+          "mode2",
+          "testsCompleted",
+          "timeTypingSeconds",
+          "avgWpm",
+          "avgAcc"
+        ],
+        "properties": {
+          "mode": {
+            "enum": [
+              "time",
+              "words",
+              "quote",
+              "zen",
+              "custom"
+            ]
+          },
+          "mode2": {
+            "type": "string"
+          },
+          "testsCompleted": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "timeTypingSeconds": {
+            "type": "number",
+            "minimum": 0
+          },
+          "avgWpm": {
+            "type": "number",
+            "minimum": 0
+          },
+          "avgAcc": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

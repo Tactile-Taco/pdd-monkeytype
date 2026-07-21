@@ -1,0 +1,21 @@
+invariants:
+  - id: O-STS-001
+    statement: >
+      Read-only: zero store writes per request and no outbound network;
+      all values derive from the stored-result reader in-process.
+    severity: must
+    rationale: >
+      Keeps the write-path bundles (test-results, result-anticheat) as the
+      sole mutation authorities; derivation needs no egress.
+    validation:
+      - egress-monitor
+      - contract-tests
+  - id: O-STS-002
+    statement: >
+      Read p95 latency <= 100ms.
+    severity: must
+    rationale: >
+      Aggregation over per-user result sets is bounded work; mirrors the
+      test-results read posture.
+    validation:
+      - resource-budget

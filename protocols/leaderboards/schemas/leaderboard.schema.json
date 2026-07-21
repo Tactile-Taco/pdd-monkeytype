@@ -12,7 +12,8 @@
       "required": [
         "mode",
         "mode2",
-        "language"
+        "language",
+        "timeWindow"
       ],
       "properties": {
         "mode": {
@@ -25,7 +26,14 @@
           ]
         },
         "language": {
-          "const": "english"
+          "type": "string",
+          "minLength": 1
+        },
+        "timeWindow": {
+          "enum": [
+            "alltime",
+            "daily"
+          ]
         }
       }
     },
@@ -75,6 +83,15 @@
           },
           "timestamp": {
             "type": "integer"
+          },
+          "percentile": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "xp": {
+            "type": "number",
+            "minimum": 0
           }
         }
       }
@@ -91,6 +108,11 @@
         },
         "entry": {
           "type": "object"
+        },
+        "percentile": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
         }
       }
     }

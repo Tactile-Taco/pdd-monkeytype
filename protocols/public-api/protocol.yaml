@@ -1,0 +1,40 @@
+protocol:
+  name: public-api
+  version: 1.0.0
+  status: sealed
+purpose: >
+  Third-party REST API: ApeKey lifecycle (generate, list, revoke) with
+  scoped keys, and a key-authenticated read surface (/results, /stats,
+  /profile, /quotes) mirroring the sealed handshake shapes and derivation
+  semantics of the owning bundles. Rate-limited with the shared error
+  envelope; scope enforcement fail-closed.
+boundary:
+  in_scope:
+    - ApeKey generate/list/revoke for the authenticated user
+    - Key authentication (constant-time compare, hash-at-rest)
+    - Scoped read surface mirroring sealed handshakes
+    - Per-key rate limiting with envelope + retry metadata
+  out_of_scope:
+    - OAuth flows, third-party write scopes, admin key management
+    - The underlying derivations themselves (owned by source bundles)
+    - API docs pages (client chrome)
+depends_on: [user-account, test-results, result-stats, user-profile, quote-library]
+provides:
+  apekey: schemas/apekey.schema.json
+consumes:
+  auth-token: user-account
+  stored-result-reader: test-results
+  result-stats: result-stats
+  user-profile: user-profile
+  quote: quote-library
+handshakes:
+  apekey: schemas/apekey.schema.json
+  apekey_create_request: schemas/apekey-create-request.schema.json
+  error: schemas/error.schema.json
+invariants:
+  structural: invariants/structural.yaml
+  behavioral: invariants/behavioral.yaml
+  operational: invariants/operational.yaml
+capabilities: capability-manifest.yaml
+validators: validators/validation-plan.yaml
+evidence: evidence-requirements.yaml

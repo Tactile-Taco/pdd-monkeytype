@@ -1,0 +1,36 @@
+invariants:
+  - id: S-API-001
+    statement: >
+      ApeKey metadata objects conform to schemas/apekey.schema.json;
+      creation requests conform to schemas/apekey-create-request.schema.json
+      with unknown scopes rejected.
+    severity: must
+    rationale: >
+      Protocol requirement. Scope vocabulary is closed (four read scopes
+      this iteration) — fail-closed on unknown scope names at creation.
+    validation:
+      - schema-conformance
+      - contract-tests
+  - id: S-API-002
+    statement: >
+      All failures return the ErrorEnvelope schema (including 401/403/429
+      paths).
+    severity: must
+    rationale: >
+      Protocol requirement (shared envelope pattern; rate-limit envelope
+      per the O-RES-004 precedent).
+    validation:
+      - contract-tests
+  - id: S-API-003
+    statement: >
+      The mirrored read surface returns payloads conforming to the source
+      bundles' handshake schemas (results: stored-result history shape;
+      stats: result-stats shapes; profile: user-profile shape; quotes:
+      quote-library shape) — referenced, never redefined.
+    severity: must
+    rationale: >
+      Parity is the contract: third parties consume the same shapes the
+      web client does. Conformance checked per mirrored endpoint.
+    validation:
+      - schema-conformance
+      - contract-tests

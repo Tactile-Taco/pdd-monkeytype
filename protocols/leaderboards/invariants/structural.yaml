@@ -1,10 +1,12 @@
 invariants:
   - id: S-LB-001
     statement: >
-      Board responses conform to schemas/leaderboard.schema.json; board key is restricted to (time, 15|60, english).
+      Board responses conform to schemas/leaderboard.schema.json; board key is (mode=time, mode2 in {15,60}, language, timeWindow in {alltime, daily}); the language value must name an entry in the wordlists language registry.
     severity: must
     rationale: >
-      Protocol requirement.
+      Protocol requirement. v1.1.0 (D7): key expanded with timeWindow and
+      registry-validated language (consumes wordlists language-registry);
+      the english-only restriction is lifted via this version event.
     validation:
       - schema-conformance
       - contract-tests

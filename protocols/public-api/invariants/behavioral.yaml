@@ -1,0 +1,75 @@
+invariants:
+  - id: B-API-001
+    statement: >
+      ApeKey lifecycle: generate mints a key with 128-bit entropy,
+      hex-encoded, carrying the literal `pdd_` prefix for scan-ability;
+      the plaintext key is returned exactly once (in the creation response
+      only) and only a salted hash of it persists; list returns metadata
+      (apekey.schema.json) never key material; revoke is idempotent and
+      fail-closed — a revoked or unknown key never authenticates.
+    severity: must
+    rationale: >
+      Hash-at-rest + show-once is the persistent intent for API keys;
+      plaintext-at-rest would be a sealed-out leak class. Key format ruled
+      round 7: 128-bit entropy, hex, `pdd_` prefix (greppable in logs and
+      secret scanners).
+    property: "plaintext(k) persisted nowhere; revoke(k); auth(k) => 401"
+    validation:
+      - contract-tests
+      - property-check
+  - id: B-API-002
+    statement: >
+      Key authentication: presented keys are compared against stored salted
+      hashes in constant time (comparison duration independent of the
+      matching prefix length); session tokens are never accepted on the API
+      surface and ApeKeys are never accepted on session-gated bundle
+      endpoints.
+    severity: must
+    rationale: >
+      Constant-time compare kills the timing-oracle class; token/key
+      separation keeps the two auth domains non-confusable.
+    property: "auth time uncorrelated with prefix match length (statistical gate with tolerance band)"
+    validation:
+      - contract-tests
+      - resource-budget
+  - id: B-API-003
+    statement: >
+      Scope enforcement is fail-closed: a key accesses only endpoints inside
+      its scopes; an out-of-scope request returns 403 ErrorEnvelope; a key
+      with zero matching scopes accesses nothing; revoked/disabled keys
+      behave as unknown keys.
+    severity: must
+    rationale: >
+      Default-deny is the only safe direction for third-party credentials.
+    property: "forall keys k, endpoints e: e not in scopes(k) => 403"
+    validation:
+      - contract-tests
+      - property-check
+  - id: B-API-004
+    statement: >
+      Surface parity: the /results /stats /profile /quotes responses equal
+      what the source bundles would serve the same user through their sealed
+      handshakes (same derivation semantics, same exclusion rules — e.g.
+      minThresholdFailed handling, zen absence, approved-only quotes).
+    severity: must
+    rationale: >
+      Mirroring, not reimplementation: parity is recompute-checkable against
+      fixtures through both surfaces.
+    property: "api(u, ep) == source(u, ep) for every mirrored endpoint"
+    validation:
+      - contract-tests
+      - property-check
+  - id: B-API-005
+    statement: >
+      Rate limiting: each key is limited to a documented number of requests
+      per documented window; over-limit requests return 429 ErrorEnvelope
+      carrying retry metadata; window accounting is deterministic under an
+      injected clock (edge tolerance band documented by the validator).
+    severity: must
+    rationale: >
+      Abuse floor for a public surface; documented constants + injected
+      clock keep the validator deterministic (burst test, not wall-clock
+      guesswork).
+    property: "req(n > limit, window) => 429 with retry metadata"
+    validation:
+      - contract-tests

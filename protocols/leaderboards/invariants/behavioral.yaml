@@ -1,11 +1,14 @@
 invariants:
   - id: B-LB-001
     statement: >
-      Only stored results with anticheat decision admit AND bailedOut=false are eligible; each user contributes at most one entry per board (their best eligible result).
+      Only stored results with anticheat decision admit AND bailedOut=false AND minThresholdFailed!=true are eligible; each user contributes at most one entry per board (their best eligible result).
     severity: must
     rationale: >
-      Protocol requirement.
-    property: "entries(u) <= 1 && all admitted && none bailed"
+      Protocol requirement. v1.1.0: min-threshold exclusion adopted from
+      test-results v1.2.0 (flag production engine-side B-ENG-010, storage
+      disposition B-RES-001/003) — the consumer-side clause recorded there
+      lands here.
+    property: "entries(u) <= 1 && all admitted && none bailed && none minThresholdFailed"
     validation:
       - property-check
   - id: B-LB-002
@@ -33,3 +36,54 @@ invariants:
       Protocol requirement.
     validation:
       - contract-tests
+  - id: B-LB-005
+    statement: >
+      Daily boards: a board read with timeWindow=daily at read time T admits
+      only eligible results with timestamp in the rolling window (T-24h, T];
+      timeWindow=alltime admits the full history. Window evaluation is
+      deterministic under an injected clock, and read-time recomputation
+      (B-LB-003) holds for both windows [C4 ruling: rolling 24h; verify at
+      implementation whether the reference uses UTC calendar days — a
+      behavior-changing divergence if so].
+    severity: must
+    rationale: >
+      v1.1.0 addition (D7). C4 ruled rolling-24h pre-seal; the verify tag
+      guards the one observable that would flip results at window edges.
+    property: "daily(T) entries <=> eligible && timestamp in (T-24h, T]"
+    validation:
+      - property-check
+      - contract-tests
+  - id: B-LB-006
+    statement: >
+      Percentile: every entry and the requester field carries percentile =
+      100 * rank / totalEligibleUsers (top-percentile: smaller is better;
+      rank 1 of 200 users => 0.5), where totalEligibleUsers counts distinct
+      users with an eligible entry on that board at read time.
+    severity: must
+    rationale: >
+      v1.1.0 addition (D7: rank + percentile). Formula documented explicitly
+      so the derivation is recompute-checkable; display formatting ("top
+      x%") is delegated.
+    property: "percentile(e) == 100 * rank(e) / totalEligibleUsers"
+    validation:
+      - property-check
+  - id: B-LB-007
+    statement: >
+      XP accrual: every entry carries xp = a documented deterministic
+      function of that entry's own result (formula inputs sealed as:
+      wpm, acc, testDuration [verify formula + coefficients against the
+      reference at implementation]); xp is derived read-time from stored
+      results — zero store writes (O-LB-001 stands). Aggregate XP totals
+      and levels are user-profile (D8) scope, not this bundle.
+    severity: must
+    rationale: >
+      v1.1.0 addition (D7 orchestrator instruction). Sealed at per-result
+      derivation level; only the documented inputs are sealed, coefficients
+      land at implementation with reference ground truth. Placement
+      adjudicated round 6 (BQ-LB-01): XP STAYS in leaderboards — it derives
+      from result/board-eligibility rules that live here; user-profile (D8)
+      consumes the sealed fields. This deliberately overrides the r1
+      assignment.
+    property: "xp(e) == f(e.wpm, e.acc, e.testDuration); same result => same xp"
+    validation:
+      - property-check

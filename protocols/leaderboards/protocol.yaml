@@ -1,23 +1,32 @@
 protocol:
   name: leaderboards
-  version: 1.0.0
+  version: 1.1.0
   status: sealed
 purpose: >
   Ranked leaderboards derived from admitted results: boards keyed by
-  (mode=time, mode2 in {15,60}, language=english), ranked by wpm with
-  deterministic tie-breaking, exposing top-N and the requester's own entry.
+  (mode=time, mode2 in {15,60}, language, timeWindow in {alltime, daily}),
+  ranked by wpm with deterministic tie-breaking, exposing top-N, the
+  requester's own entry, per-entry percentile, and per-result XP accrual.
+  v1.1.0 (additive MINOR, brownfield D7): daily boards (rolling 24h per C4),
+  multi-language boards validated against the wordlists registry,
+  percentile, XP accrual derivation, and eligibility exclusion of
+  minThresholdFailed results per test-results v1.2.0.
 boundary:
   in_scope:
-    - Board read (top-N, N<=100, default 50) and requester rank
-    - Eligibility filtering from stored admitted results
+    - Board read (top-N, N<=100, default 50) and requester rank/percentile
+    - Eligibility filtering from stored admitted results (excl. bailed + min-threshold-failed)
+    - Daily window boards (rolling 24h) and registry-validated language boards
+    - Per-entry percentile and per-result XP accrual (read-time derivations)
   out_of_scope:
-    - Historical/daily boards, multi-language boards, opt-out management
-depends_on: [test-results, user-account]
+    - Opt-out management, historical boards beyond the daily window,
+      aggregate XP/level/badges (user-profile, D8)
+depends_on: [test-results, user-account, wordlists]
 provides:
   leaderboard: schemas/leaderboard.schema.json
 consumes:
   stored-result-reader: test-results
   auth-token: user-account
+  language-registry: wordlists
 handshakes:
   leaderboard: schemas/leaderboard.schema.json
   error: schemas/error.schema.json

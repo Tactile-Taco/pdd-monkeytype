@@ -1,0 +1,37 @@
+invariants:
+  - id: O-API-001
+    statement: >
+      No outbound network beyond the in-process source handshakes; store
+      writes are confined to the ApeKey store (hash-at-rest) and rate-limit
+      counters.
+    severity: must
+    rationale: >
+      Mirroring needs no egress; the only mutation authority this bundle
+      holds is over its own keys.
+    validation:
+      - egress-monitor
+      - contract-tests
+  - id: O-API-002
+    statement: >
+      API read p95 latency <= 150ms (parity surface plus auth/rate-limit
+      overhead over the source bundles' budgets).
+    severity: must
+    rationale: >
+      Source budgets (50–100ms) plus bounded auth accounting.
+    validation:
+      - resource-budget
+  - id: O-API-003
+    statement: >
+      Per-IP rate dimension: in addition to the per-key limit (B-API-005),
+      each source IP is limited to a documented request count per window
+      with the same 429 ErrorEnvelope + retry metadata; the per-IP limit is
+      >= the per-key limit so the per-key dimension remains the tested
+      contract; window accounting is deterministic under an injected clock.
+    severity: must
+    rationale: >
+      Round-7 ruling (BQ-API-02): second dimension approved as an
+      operational invariant; the >= ordering keeps B-API-005's per-key
+      contract the one exercised by validators.
+    property: "req(n > ipLimit, window, same IP) => 429; ipLimit >= keyLimit"
+    validation:
+      - contract-tests

@@ -72,6 +72,14 @@ evidence-requirements, O-ENG-001..004.
 | 6 | ui-presentation | 1.0.0 → 2.0.0 major (O-UI-004 font configurability, CA-UI-02) | roadmap D4b, C1; round-4 BQ-UI-01/02 |
 
 Validator patches (not protocol events): ui-presentation computed-style-metrics 0.1.0 → 0.1.1 (2026-07-20, BQ-UI-IMPL-01): token readers extended 7 → sealed 9 riding the sealed v2.0.0 event; suite verified green 19/19 against the booted candidate (harness/out/ui-presentation-verify-0.1.1.json). |
+| 7 | test-results | 1.1.0 → 1.2.0 minor (zen non-persistence, minThresholdFailed adoption, tags composite; 13 musts exception-listed) | roadmap D5a; round-5 BQ-RES-01 |
+| 8 | result-stats | 0.1.0 draft → 1.0.0 seal (NEW read-only bundle) | roadmap D5b; round-5 BQ-STS-01/02 |
+| 9 | wordlists | 0.1.0 draft → 1.0.0 seal (NEW provider bundle) | roadmap D3; round-5 BQ-WL-01/02 |
+| 10 | typing-test-engine | 2.0.0 → 2.0.1 patch (additive metadata: consumes wordlist: wordlists; internal provider retired) | round-5 BQ-WL-02 follow-through |
+| 11 | quote-library | 1.0.0 → 1.1.0 minor (tri-state moderation C5, rating-weighted selection, favorites, search/browse; 13 musts exception-listed) | roadmap D6; round-6 BQ-QT-01/02 |
+| 12 | leaderboards | 1.0.0 → 1.1.0 minor (daily rolling-24h C4, language boards, percentile, XP derivation kept here per BQ-LB-01, minThresholdFailed exclusion) | roadmap D7; round-6 BQ-LB-01/02 |
+| 13 | user-profile | 0.1.0 draft → 1.0.0 seal (NEW compose-only bundle; isPublic per round-7) | roadmap D8; round-7 BQ-PRO-01/02 |
+| 14 | public-api | 0.1.0 draft → 1.0.0 seal (NEW; ApeKey pdd_ format, per-IP second dimension O-API-003) | roadmap D9; round-7 BQ-API-01/02/03 |
 
 Blocking questions this round: 6, all adjudicated in one round. Critical
 ambiguities found during drafting: 0 new (all mode semantics arrived with

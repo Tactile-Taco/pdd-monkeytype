@@ -1,0 +1,86 @@
+invariants:
+  - id: B-PRO-001
+    statement: >
+      Compose-only derivation: every served derived value equals its sealed
+      source — name/addedAt from user-account; pbs/aggregates pass-through
+      from result-stats; xp = sum of the sealed per-result xp fields over
+      the user's stored results; streaks derived from the activity series
+      per B-PRO-002. This bundle stores NONE of these; re-reading after a
+      source change reflects the change (no cached derived state).
+    severity: must
+    rationale: >
+      Zero new storage authority over derived data (orchestrator
+      instruction): a single source of truth per fact keeps validators a
+      recompute-consistency exercise against fixtures, exactly like
+      result-stats.
+    property: "serve(u) == compose(sources(u)) for every derived field"
+    validation:
+      - property-check
+      - contract-tests
+  - id: B-PRO-002
+    statement: >
+      Streaks (UTC-day rules): a day is ACTIVE when the user's activity
+      series shows testsCompleted >= 1 for that UTC date; current streak =
+      the count of consecutive active days ending at the most recent active
+      day, where the streak is alive iff the most recent active day is
+      today or yesterday (UTC, injected clock), else current = 0; max
+      streak = the longest run of consecutive active days in the series.
+      [verify reference streak rules at implementation — consecutive
+      UTC-day tests; current vs max as sealed here]. Single source of truth
+      (round-7 ruling): streaks derive ONLY from the result-stats activity
+      series; this bundle never computes streaks independently.
+    severity: must
+    rationale: >
+      D8 instruction with explicit verify hedge; formulas documented so
+      reference divergence is a one-line amendment. Deterministic under
+      injected clock; boundary fuzz is the cheap validator. Round-7: the
+      activity series is the single streak source — no independent
+      computation path exists in this bundle.
+    property: "streaks(series, clock) == documented formulas"
+    validation:
+      - property-check
+  - id: B-PRO-003
+    statement: >
+      Level is a documented monotonically non-decreasing function of total
+      xp (coefficients land at implementation with reference ground truth
+      [verify]); level never decreases as xp grows and is recomputed, never
+      stored.
+    severity: must
+    rationale: >
+      Sealing monotonicity + determinism, delegating the curve, mirrors the
+      rating-weight discipline (B-QT-007): checkable without freezing
+      cosmetic tuning.
+    property: "xp(a) >= xp(b) => level(a) >= level(b)"
+    validation:
+      - property-check
+  - id: B-PRO-004
+    statement: >
+      Editable-field validation (strict): bio <= 500 chars; avatarUrl and
+      any website social link must match ^https:// (avatar is a URL
+      reference only — no blob storage); social handle fields <= 200 chars;
+      isPublic is a boolean (default true [verify at implementation]);
+      an invalid update returns the error envelope with ZERO fields written
+      (all-or-nothing).
+    severity: must
+    rationale: >
+      Strict-input discipline for the only writable surface in the bundle;
+      all-or-nothing keeps partial-corruption states impossible.
+    property: "invalid(update) => error && profile unchanged"
+    validation:
+      - contract-tests
+      - property-check
+  - id: B-PRO-005
+    statement: >
+      Public read: a public profile read by name returns only the public
+      shape (profile.schema.json publicFields + composed stats) — never
+      email, tokens, or non-public account fields; an unknown name OR a
+      profile with isPublic=false returns an identical 404-shaped
+      ErrorEnvelope (not_found; non-public profiles are indistinguishable
+      from absent ones per the O-RES-004 envelope precedent), while the
+      owner's own authenticated read is unaffected.
+    severity: must
+    rationale: >
+      Public-surface minimality; leak class sealed out explicitly.
+    property: "publicRead(name) keys subset of public shape"
+    validation:
+      - contract-tests

@@ -1,0 +1,40 @@
+protocol:
+  name: user-profile
+  version: 1.0.0
+  status: sealed
+purpose: >
+  User profile: a public read surface composed from sealed handshakes —
+  identity from user-account (frozen), PB table and aggregates from
+  result-stats, XP and level derived from the sealed per-result xp fields
+  (leaderboards), streaks from the activity series — plus a small set of
+  own-editable profile fields (bio, avatar URL, social links) with strict
+  validation. Compose-only for derived data: zero new storage authority
+  over results, stats, XP, or identity.
+boundary:
+  in_scope:
+    - Public profile read by name (public fields only) and own-profile read
+    - Composed derivations: identity, PB table, aggregates, total XP/level, streaks
+    - Editable fields (bio, avatar URL, social links, isPublic privacy toggle) with strict validation
+  out_of_scope:
+    - Authentication, tokens, account lifecycle (user-account, frozen)
+    - Result storage/stats derivation/XP accrual/boards (source bundles own those)
+    - Badges, name-change history, avatar blob storage (deferred; avatar is URL-only)
+depends_on: [user-account, result-stats, leaderboards, test-results]
+provides:
+  user-profile: schemas/profile.schema.json
+consumes:
+  auth-token: user-account
+  result-stats: result-stats
+  leaderboard: leaderboards
+  stored-result-reader: test-results
+handshakes:
+  profile: schemas/profile.schema.json
+  profile_update: schemas/profile-update.schema.json
+  error: schemas/error.schema.json
+invariants:
+  structural: invariants/structural.yaml
+  behavioral: invariants/behavioral.yaml
+  operational: invariants/operational.yaml
+capabilities: capability-manifest.yaml
+validators: validators/validation-plan.yaml
+evidence: evidence-requirements.yaml

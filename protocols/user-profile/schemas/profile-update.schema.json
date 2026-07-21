@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ProfileUpdate (own editable fields)",
+  "type": "object",
+  "minProperties": 1,
+  "properties": {
+    "bio": {
+      "type": "string",
+      "maxLength": 500
+    },
+    "avatarUrl": {
+      "type": "string",
+      "maxLength": 500,
+      "pattern": "^https://"
+    },
+    "socials": {
+      "type": "object",
+      "properties": {
+        "website": {
+          "type": "string",
+          "maxLength": 200,
+          "pattern": "^https://"
+        },
+        "twitter": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "github": {
+          "type": "string",
+          "maxLength": 200
+        }
+      },
+      "additionalProperties": false
+    },
+    "isPublic": {
+      "type": "boolean"
+    }
+  },
+  "additionalProperties": false
+}

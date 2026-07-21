@@ -1,0 +1,34 @@
+invariants:
+  - id: S-PRO-001
+    statement: >
+      Profile responses conform to schemas/profile.schema.json; pass-through
+      payloads (pbs, aggregates) are delivered exactly as produced by their
+      source handshakes.
+    severity: must
+    rationale: >
+      Protocol requirement. Cross-bundle payloads are referenced, not
+      redefined (fork rule) — schema-conformance applies at the source
+      bundle; equality here is B-PRO-001's job.
+    validation:
+      - schema-conformance
+      - contract-tests
+  - id: S-PRO-002
+    statement: >
+      All failures return the ErrorEnvelope schema.
+    severity: must
+    rationale: >
+      Protocol requirement.
+    validation:
+      - contract-tests
+  - id: S-PRO-003
+    statement: >
+      Profile edits require authentication, target only the requester's own
+      profile, and conform to schemas/profile-update.schema.json; unknown
+      keys and invalid values are rejected (closed shape).
+    severity: must
+    rationale: >
+      Own-data-only mutation posture, mirroring user-config's closed-schema
+      discipline.
+    validation:
+      - schema-conformance
+      - contract-tests

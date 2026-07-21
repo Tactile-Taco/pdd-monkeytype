@@ -1,0 +1,22 @@
+invariants:
+  - id: O-PRO-001
+    statement: >
+      No outbound network; store writes are confined to the own-profile
+      fields file (max one write per request); composed data is derived
+      in-process from the source handshakes.
+    severity: must
+    rationale: >
+      Compose-only posture with a minimal writable surface (bio/avatar/
+      socials only).
+    validation:
+      - egress-monitor
+      - contract-tests
+  - id: O-PRO-002
+    statement: >
+      Read p95 latency <= 100ms (composition over per-user sources is
+      bounded work).
+    severity: must
+    rationale: >
+      Mirrors the result-stats read posture.
+    validation:
+      - resource-budget

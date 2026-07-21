@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "UserProfile (public read shape)",
+  "type": "object",
+  "required": [
+    "name",
+    "addedAt",
+    "xp",
+    "level",
+    "streaks",
+    "publicFields"
+  ],
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "addedAt": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "xp": {
+      "type": "number",
+      "minimum": 0
+    },
+    "level": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "streaks": {
+      "type": "object",
+      "required": [
+        "current",
+        "max"
+      ],
+      "properties": {
+        "current": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "max": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false
+    },
+    "publicFields": {
+      "type": "object",
+      "required": [
+        "bio",
+        "avatarUrl",
+        "socials"
+      ],
+      "properties": {
+        "bio": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "avatarUrl": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "socials": {
+          "type": "object",
+          "properties": {
+            "website": { "type": "string", "maxLength": 200 },
+            "twitter": { "type": "string", "maxLength": 200 },
+            "github": { "type": "string", "maxLength": 200 }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "pbs": {
+      "type": "object",
+      "description": "Pass-through of the result-stats pb_table handshake payload (validated at source; equality sealed by B-PRO-001)."
+    },
+    "aggregates": {
+      "type": "object",
+      "description": "Pass-through of the result-stats aggregates handshake payload (validated at source; equality sealed by B-PRO-001)."
+    }
+  },
+  "additionalProperties": false
+}

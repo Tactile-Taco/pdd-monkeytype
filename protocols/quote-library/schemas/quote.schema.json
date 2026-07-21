@@ -49,6 +49,17 @@
           "minimum": 0
         }
       }
+    },
+    "state": {
+      "enum": [
+        "pending",
+        "approved",
+        "refused"
+      ]
+    },
+    "moderationNote": {
+      "type": "string",
+      "maxLength": 500
     }
   },
   "additionalProperties": false

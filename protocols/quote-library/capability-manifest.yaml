@@ -4,7 +4,7 @@ capabilities:
     deny_other_outbound: true
   filesystem:
     read: [data/quotes.seed.json]
-    write: [data/quotes.json]
+    write: [data/quotes.json, data/favorites.json]
   database:
     max_writes_per_request: 1
   dependencies:

@@ -40,3 +40,68 @@ invariants:
       Protocol requirement.
     validation:
       - property-check
+  - id: B-QT-006
+    statement: >
+      Tri-state moderation (composite): (a) every quote carries a moderation
+      state in {pending, approved, refused} with approved=true on the quote
+      object if and only if state=approved (the boolean is retained for
+      handshake compatibility); (b) only moderator accounts can approve or
+      refuse; approval sets state=approved, refusal sets state=refused, both
+      idempotent; (c) refused quotes are PERSISTED with their moderation
+      metadata (never silently deleted) and are never served by random fetch,
+      search, or browse; (d) a pending quote is never served either
+      (B-QT-001 stands).
+    severity: must
+    rationale: >
+      v1.1.0 addition (C5 ruling: persisted tri-state pending/approved/
+      refused, refused retained with metadata [verify metadata fields at
+      implementation — moderationNote carried as optional schema field]).
+      Additive state field + consistency clause (a) keeps the v1.0.0 boolean
+      consumers conformant (orchestrator-approved over a boolean->enum break).
+    property: "approved(q) <=> state(q)=='approved'; refuse persists && never-served"
+    validation:
+      - contract-tests
+      - property-check
+  - id: B-QT-007
+    statement: >
+      Rating-weighted selection: random fetch weights each approved quote by
+      a documented weight function of its rating average, monotonically
+      non-decreasing in the average (unrated quotes use a documented default
+      weight); given the same quote set, weights, and seed, selection is
+      reproducible [verify reference weighting at implementation].
+    severity: must
+    rationale: >
+      v1.1.0 addition (D6: rating affects selection weight). Monotonicity is
+      sealed on the WEIGHT FUNCTION, not on sampled outcomes — checkable
+      deterministically without flaky statistics over random draws.
+    property: "avg(a) >= avg(b) => weight(a) >= weight(b); select(set, weights, seed) deterministic"
+    validation:
+      - property-check
+  - id: B-QT-008
+    statement: >
+      Favorites: the authenticated user adds/removes own favorites by quoteId
+      (schemas/favorite-request.schema.json); add is idempotent; the
+      favorites list returns only approved quotes the user favorited, and
+      removing a quote from favorites never deletes the quote.
+    severity: must
+    rationale: >
+      v1.1.0 addition (D6 residual). Own-data-only scoping mirrors the
+      auth posture of ratings.
+    property: "add(id); add(id) => one entry; list(u) subset of favorites(u)"
+    validation:
+      - contract-tests
+      - property-check
+  - id: B-QT-009
+    statement: >
+      Search/browse: an approved-quote list read accepts optional language
+      and text-substring filters and returns only approved quotes matching
+      both; results are paginated with a documented page size and stable
+      ordering [verify pagination + ordering at implementation].
+    severity: must
+    rationale: >
+      v1.1.0 addition (D6 residual: quote search/browse page). Stable
+      ordering keeps pagination total and validators deterministic.
+    property: "results subset of approved && match(lang?, substr?); order stable across reads"
+    validation:
+      - contract-tests
+      - property-check

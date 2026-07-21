@@ -1,17 +1,23 @@
 protocol:
   name: quote-library
-  version: 1.0.0
+  version: 1.1.0
   status: sealed
 purpose: >
   Typing-test quote corpus: random approved-quote fetch by language and length
-  group, user submission into a pending state, moderator approval, and 1-5 star
-  rating with exposed averages.
+  group, user submission into a pending state, tri-state moderation
+  (pending/approved/refused, persisted), and 1-5 star rating with exposed
+  averages. v1.1.0 (additive MINOR, brownfield D6): persisted tri-state
+  moderation per C5, rating-weight influence on random selection [verify],
+  favorites, and approved-quote search/browse.
 boundary:
   in_scope:
-    - Random quote read (approved only), submission, approval, rating
+    - Random quote read (approved only), submission, tri-state moderation, rating
+    - Rating-weighted selection (monotonic in rating average)
+    - Favorites (add/remove/list own) and approved-quote search/browse
     - Length grouping into four configured ranges (groups 0..3)
   out_of_scope:
-    - Quote reporting/moderation queues beyond approve, multi-language search
+    - Cross-user moderation dashboards, quote reporting queues beyond refuse,
+      per-quote personal bests (already via test-results B-RES-003, mode2=quote id)
 depends_on: [user-account]
 provides:
   quote: schemas/quote.schema.json
@@ -21,6 +27,7 @@ handshakes:
   quote: schemas/quote.schema.json
   submit_request: schemas/submit-request.schema.json
   rate_request: schemas/rate-request.schema.json
+  favorite_request: schemas/favorite-request.schema.json
   error: schemas/error.schema.json
 invariants:
   structural: invariants/structural.yaml

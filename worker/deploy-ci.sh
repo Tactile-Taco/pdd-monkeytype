@@ -11,7 +11,7 @@ sha256sum worker/bundle.mjs
 resp=$(curl -sS -X PUT "https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/workers/scripts/${SCRIPT}" \
   -H "Authorization: Bearer ${CF_API_TOKEN}" \
   -F "metadata=@/tmp/cf-metadata.json;type=application/json" \
-  -F "worker.mjs=@worker/bundle.mjs;type=application/javascript+module")
+  -F "worker.mjs=@worker/bundle.mjs;type=application/javascript+module;filename=worker.mjs")
 echo "$resp" | python3 -c "import json,sys; r=json.load(sys.stdin); r.get('success') or sys.exit('CF error: '+json.dumps(r.get('errors'))); print('deploy ok:', r['result'].get('id'), 'size:', r['result'].get('bundleSize'))"
 curl -sS -X POST "https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/workers/scripts/${SCRIPT}/subdomain" \
   -H "Authorization: Bearer ${CF_API_TOKEN}" -H "Content-Type: application/json" -d '{"enabled":true}' > /dev/null

@@ -69,6 +69,8 @@ for (const proto of readdirSync(join(root, "protocols"))) {
 function appliesTo(invariantId, proto) {
   const PFX = { "user-account": ["ACC"], "user-config": ["CFG"], "quote-library": ["QT"],
                 "test-results": ["RES"], "leaderboards": ["LB"],
+                "result-stats": ["STS"], "wordlists": ["WL"],
+                "user-profile": ["PRO"], "public-api": ["API"],
                 "typing-test-engine": ["ENG"], "result-anticheat": ["AC"],
                 "ui-presentation": ["UI"], "theme-catalog": ["THM"] };
   const pfx = PFX[proto] ?? [];
